@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JARVIS | MISSION CONTROL</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c:#00e5ff;--c2:#ff6b35;--c3:#39ff14;--c4:#ffd700;
+  --bg:#020c12;--panel:rgba(0,20,35,0.85);
+  --border:rgba(0,229,255,0.25);
+  --glow:0 0 12px rgba(0,229,255,0.5);
+  --glow2:0 0 8px rgba(0,229,255,0.3);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+::-webkit-scrollbar{width:4px;background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.4);border-radius:2px}
+body{background:var(--bg);color:var(--c);font-family:'Exo 2',sans-serif;
+  height:100vh;overflow:hidden;display:flex;flex-direction:column;
+  background-image:
+    radial-gradient(ellipse 80% 40% at 50% -10%,rgba(0,100,150,0.15) 0%,transparent 60%),
+    linear-gradient(rgba(0,229,255,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,229,255,0.03) 1px,transparent 1px);
+  background-size:100% 100%,60px 60px,60px 60px;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);}
+header{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:12px 16px;height:215px;flex-shrink:0;border-bottom:1px solid var(--border);}
+.hud-panel{background:var(--panel);border:1px solid var(--border);padding:14px;position:relative;overflow:hidden;}
+.hud-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--c),transparent);animation:scan-h 3s ease-in-out infinite;}
+@keyframes scan-h{0%,100%{opacity:0.4}50%{opacity:1}}
+.corner{position:absolute;width:10px;height:10px;border-color:var(--c);border-style:solid;}
+.corner-tl{top:0;left:0;border-width:2px 0 0 2px}.corner-tr{top:0;right:0;border-width:2px 2px 0 0}
+.corner-bl{bottom:0;left:0;border-width:0 0 2px 2px}.corner-br{bottom:0;right:0;border-width:0 2px 2px 0}
+.hud-label{font-size:0.6rem;letter-spacing:3px;color:rgba(0,229,255,0.5);margin-bottom:3px;font-family:'Share Tech Mono'}
+#city-name{font-family:'Orbitron';font-size:1.05rem;font-weight:700;letter-spacing:2px}
+#weather-detail{font-size:0.75rem;color:rgba(0,229,255,0.7);margin:3px 0 8px}
+#big-clock{font-family:'Orbitron';font-size:3rem;font-weight:900;line-height:1;text-shadow:var(--glow);letter-spacing:2px}
+#big-date{font-size:0.7rem;letter-spacing:3px;margin-top:4px;color:rgba(0,229,255,0.7)}
+.weather-row{display:flex;gap:16px;margin-top:8px}
+.weather-stat{font-size:0.7rem;color:rgba(255,255,255,0.6)}
+.weather-stat span{color:var(--c);font-weight:600}
+.center-hud{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--panel);border:1px solid var(--border);position:relative;overflow:hidden;}
+.center-hud::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,229,255,0.05) 0%,transparent 70%);}
+.jarvis-title{font-family:'Orbitron';font-size:2.8rem;font-weight:900;letter-spacing:14px;
+  text-shadow:0 0 30px var(--c),0 0 60px rgba(0,229,255,0.3);position:relative;z-index:1}
+.jarvis-sub{font-size:0.55rem;letter-spacing:8px;color:rgba(0,229,255,0.5);margin-top:2px;font-family:'Share Tech Mono'}
+.core-ring{width:60px;height:60px;border-radius:50%;border:1px solid rgba(0,229,255,0.3);
+  display:flex;align-items:center;justify-content:center;margin-top:8px;position:relative;animation:rotate 20s linear infinite;}
+.core-ring::before{content:'';position:absolute;inset:4px;border-radius:50%;
+  border:1px dashed rgba(0,229,255,0.4);animation:rotate 8s linear infinite reverse;}
+.core-dot{width:14px;height:14px;border-radius:50%;background:var(--c);box-shadow:0 0 20px var(--c);animation:pulse-dot 2s ease-in-out infinite}
+@keyframes rotate{to{transform:rotate(360deg)}}
+@keyframes pulse-dot{0%,100%{transform:scale(0.8);opacity:0.6}50%{transform:scale(1.2);opacity:1}}
+.ai-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ai-status{display:flex;align-items:center;gap:6px;font-size:0.65rem;letter-spacing:2px;color:rgba(0,229,255,0.6)}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--c3);box-shadow:0 0 8px var(--c3);animation:pulse-dot 1.5s ease-in-out infinite}
+.ai-log{height:95px;overflow-y:auto;font-family:'Share Tech Mono';font-size:0.7rem;
+  border-left:2px solid rgba(0,229,255,0.3);padding-left:10px;margin-bottom:8px;line-height:1.6;}
+.log-sys{color:rgba(0,229,255,0.5)}.log-user{color:#fff}.log-jarvis{color:var(--c3)}.log-err{color:var(--c2)}
+.ai-controls{display:flex;gap:5px}
+.ai-input{flex:1;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.3);color:#fff;
+  padding:7px 10px;font-family:'Share Tech Mono';font-size:0.75rem;outline:none;}
+.ai-input:focus{border-color:var(--c);box-shadow:0 0 8px rgba(0,229,255,0.2)}
+.btn{background:transparent;border:1px solid rgba(0,229,255,0.4);color:var(--c);cursor:pointer;
+  font-family:'Orbitron';font-size:0.6rem;padding:6px 10px;transition:all 0.2s;white-space:nowrap;letter-spacing:1px;}
+.btn:hover{background:var(--c);color:#000;box-shadow:var(--glow)}
+.btn.danger:hover{background:var(--c2);border-color:var(--c2)}
+.btn-mic{border-color:rgba(255,107,53,0.4);color:var(--c2)}
+.btn-mic.active{background:var(--c2);color:#000;border-color:var(--c2);animation:pulse-btn 1s ease-in-out infinite}
+@keyframes pulse-btn{0%,100%{box-shadow:0 0 8px rgba(255,107,53,0.5)}50%{box-shadow:0 0 20px rgba(255,107,53,0.8)}}
+main{display:grid;grid-template-columns:1.3fr 1fr 1.1fr;gap:12px;padding:0 16px 14px;flex:1;overflow:hidden;min-height:0;}
+.panel{background:var(--panel);border:1px solid var(--border);padding:14px;
+  overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;position:relative;
+  scrollbar-width:thin;scrollbar-color:rgba(0,229,255,0.3) transparent;}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--c),transparent);opacity:0.5;}
+.panel-title{font-family:'Orbitron';font-size:0.75rem;font-weight:700;letter-spacing:3px;
+  border-left:3px solid var(--c);padding-left:10px;margin-bottom:12px;
+  display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.panel-badge{font-size:0.55rem;letter-spacing:2px;color:rgba(0,229,255,0.5);
+  background:rgba(0,229,255,0.08);border:1px solid var(--border);padding:2px 6px;}
+/* CALENDAR */
+.cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-shrink:0}
+.cal-nav-btn{background:transparent;border:1px solid var(--border);color:var(--c);cursor:pointer;padding:3px 8px;font-family:'Share Tech Mono'}
+.cal-nav-btn:hover{border-color:var(--c);background:rgba(0,229,255,0.1)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;
+  background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.15);flex-shrink:0;margin-bottom:10px;}
+.cal-head{background:rgba(0,0,0,0.5);font-size:0.6rem;text-align:center;padding:5px 2px;
+  font-family:'Orbitron';letter-spacing:1px;color:rgba(0,229,255,0.6)}
+.cal-cell{background:var(--bg);min-height:52px;padding:3px;font-size:0.65rem;
+  border:0.5px solid rgba(0,229,255,0.06);position:relative;}
+.cal-cell.today{background:rgba(0,229,255,0.07);outline:1px solid rgba(0,229,255,0.4)}
+.cal-cell.today .cal-day-num{color:var(--c);font-weight:700;text-shadow:var(--glow2)}
+.cal-day-num{font-family:'Share Tech Mono';margin-bottom:2px}
+.cal-task-chip{border-left:2px solid var(--c);font-size:0.55rem;
+  padding:1px 3px;margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.cal-task-chip.pay-chip{background:rgba(255,107,53,0.15);border-left:2px solid var(--c2);color:rgba(255,180,150,0.9);}
+/* UPCOMING */
+.yr-strip-title{font-family:'Orbitron';font-size:0.65rem;letter-spacing:2px;color:rgba(0,229,255,0.5);margin-bottom:6px;flex-shrink:0}
+.yr-month{display:grid;grid-template-columns:55px 1fr;gap:8px;align-items:start;
+  border-bottom:1px solid rgba(0,229,255,0.06);padding:6px 0;}
+.yr-mo-label{font-family:'Orbitron';font-size:0.65rem;color:var(--c)}
+.yr-mo-count{font-family:'Share Tech Mono';font-size:0.55rem;color:rgba(0,229,255,0.4);margin-top:2px}
+.yr-task-list{color:rgba(255,255,255,0.6);font-size:0.65rem;line-height:1.6}
+.yr-task-item{display:flex;align-items:center;gap:4px}
+.yr-task-dot{width:3px;height:3px;border-radius:50%;background:var(--c2);flex-shrink:0}
+.yr-no-task{color:rgba(0,229,255,0.2);font-style:italic}
+/* COMMITMENTS */
+.prog-bar-wrap{position:relative;height:6px;background:rgba(0,0,0,0.5);border:1px solid rgba(0,229,255,0.15);overflow:hidden}
+.prog-bar-fill{height:100%;transition:width 0.8s cubic-bezier(0.4,0,0.2,1);position:relative}
+.prog-bar-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:4px;
+  background:rgba(255,255,255,0.6);box-shadow:0 0 6px rgba(255,255,255,0.8)}
+.prog-bar-fill.done{background:linear-gradient(90deg,rgba(57,255,20,0.3),var(--c3))}
+.prog-bar-fill.on-track{background:linear-gradient(90deg,rgba(0,150,200,0.3),var(--c))}
+.prog-bar-fill.behind{background:linear-gradient(90deg,rgba(255,107,53,0.3),var(--c2))}
+/* FINANCIAL */
+.fin-section{margin-bottom:10px;flex-shrink:0}
+.fin-section-label{font-size:0.6rem;letter-spacing:3px;color:rgba(0,229,255,0.4);
+  border-bottom:1px solid rgba(0,229,255,0.1);padding-bottom:4px;margin-bottom:7px;font-family:'Share Tech Mono'}
+.index-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.index-card{background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.1);padding:9px;text-align:center}
+.index-name{font-family:'Orbitron';font-size:0.55rem;letter-spacing:2px;color:rgba(0,229,255,0.5);margin-bottom:3px}
+.index-val{font-family:'Share Tech Mono';font-size:1.05rem}
+.index-chg{font-size:0.65rem;margin-top:2px}
+.fg-bar{height:8px;background:linear-gradient(90deg,#e74c3c,#e67e22,#f1c40f,#2ecc71,#27ae60);
+  border-radius:4px;margin:6px 0;position:relative}
+.fg-needle{position:absolute;top:-4px;width:3px;height:16px;background:#fff;
+  border-radius:2px;transform:translateX(-50%);box-shadow:0 0 6px #fff;transition:left 0.8s}
+.fg-labels{display:flex;justify-content:space-between;font-size:0.5rem;color:rgba(255,255,255,0.4)}
+.up{color:var(--c3)}.dn{color:var(--c2)}
+.stock-row{display:grid;grid-template-columns:90px 1fr 1fr 1fr 1fr;
+  align-items:center;gap:4px;padding:8px 6px;border-bottom:1px solid rgba(0,229,255,0.06);transition:background 0.2s;}
+.stock-row:hover{background:rgba(0,229,255,0.04)}
+.stock-row:last-child{border-bottom:none}
+.stock-row-ticker{font-family:'Orbitron';font-size:0.65rem;color:var(--c);font-weight:700}
+.stock-row-name{font-size:0.58rem;color:rgba(255,255,255,0.35);font-family:'Share Tech Mono';margin-top:1px}
+.voice-ring{position:fixed;bottom:20px;right:20px;width:46px;height:46px;border-radius:50%;
+  border:2px solid rgba(255,107,53,0.3);display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;cursor:pointer;background:rgba(0,0,0,0.5);transition:all 0.3s;z-index:100;}
+.voice-ring.active{border-color:var(--c2);box-shadow:0 0 20px rgba(255,107,53,0.5);animation:voice-pulse 1s ease-in-out infinite}
+@keyframes voice-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.shimmer{background:linear-gradient(90deg,rgba(0,229,255,0.05) 0%,rgba(0,229,255,0.15) 50%,rgba(0,229,255,0.05) 100%);
+  background-size:200% 100%;animation:shimmer 2s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="center-hud" style="align-items:flex-start;padding:14px;">
+    <div class="jarvis-title" style="font-size:2.2rem;letter-spacing:10px">JARVIS</div>
+    <div class="jarvis-sub" style="margin-top:4px">JUST A RATHER VERY INTELLIGENT SYSTEM</div>
+    <div class="core-ring" style="margin-top:10px"><div class="core-dot"></div></div>
+  </div>
+
+  <div class="hud-panel">
+    <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div><div class="corner corner-br"></div>
+    <div class="hud-label">LOCATION · ENVIRONMENT</div>
+    <div id="city-name">ACQUIRING SIGNAL...</div>
+    <div id="weather-detail">CONNECTING...</div>
+    <div id="big-clock">00:00:00</div>
+    <div id="big-date">SYSTEM INITIALIZING</div>
+    <div class="weather-row">
+      <div class="weather-stat">FEELS <span id="feels-like">--°C</span></div>
+      <div class="weather-stat">HUM <span id="humidity">--%</span></div>
+      <div class="weather-stat">WIND <span id="wind">-- km/h</span></div>
+    </div>
+    <div id="usd-myr-rate" style="font-family:'Share Tech Mono';font-size:0.6rem;color:rgba(0,229,255,0.5);margin-top:6px;border-top:1px solid rgba(0,229,255,0.1);padding-top:5px;">USD/MYR: LOADING...</div>
+  </div>
+
+  <div class="hud-panel">
+    <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div><div class="corner corner-br"></div>
+    <div class="ai-header">
+      <div class="hud-label">AI COMMAND INTERFACE</div>
+      <div class="ai-status"><div class="status-dot"></div>ONLINE</div>
+    </div>
+    <div class="ai-log" id="ai-log">
+      <div class="log-sys">[SYS] Neural link active. Wake word: "Hey Jarvis"</div>
+      <div class="log-sys">[SYS] Click anywhere to activate voice.</div>
+    </div>
+    <div class="ai-controls">
+      <input class="ai-input" type="text" id="user-input" placeholder="Type command & press Enter..."
+        onkeydown="if(event.key==='Enter')sendCmd()">
+      <button class="btn btn-mic" id="mic-btn" onclick="toggleVoice()">🎙 MIC</button>
+      <button class="btn danger" onclick="clearLog()">CLR</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- COL 1: PAYMENT SCHEDULE -->
+  <section class="panel">
+    <div class="panel-title">
+      PAYMENT SCHEDULE
+      <div style="display:flex;gap:5px;align-items:center">
+        <span class="panel-badge" id="pay-count">0 PAYMENTS</span>
+        <button class="btn" onclick="syncCommitment()" style="font-size:0.5rem;padding:3px 7px">SYNC</button>
+      </div>
+    </div>
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="shiftMonth(-1)">◀</button>
+      <span id="cal-month-label" style="font-family:'Orbitron';font-size:0.8rem;letter-spacing:2px"></span>
+      <button class="cal-nav-btn" onclick="shiftMonth(1)">▶</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="yr-strip-title">▸ UPCOMING PAYMENTS</div>
+    <div id="yr-strip" style="flex:1;overflow-y:auto"></div>
+  </section>
+
+  <!-- COL 2: COMMITMENTS VS SAVINGS -->
+  <section class="panel">
+    <div class="panel-title">
+      COMMITMENTS VS SAVINGS
+      <button class="btn" onclick="syncCommitment()" style="font-size:0.5rem;padding:3px 7px">SYNC</button>
+    </div>
+    <div style="margin-bottom:10px;padding:10px;border:1px solid rgba(0,229,255,0.15);background:rgba(0,0,0,0.3);flex-shrink:0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-family:'Orbitron';font-size:0.7rem;letter-spacing:2px">PROGRESS</span>
+        <span id="comm-pct-label" style="font-family:'Orbitron';font-size:1.1rem">--%</span>
+      </div>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar-fill on-track" id="comm-pct-bar" style="width:0%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-family:'Share Tech Mono';font-size:0.65rem;margin-top:5px;color:rgba(255,255,255,0.5)">
+        <span>COMMITMENT: <span id="comm-total" style="color:var(--c2)">--</span></span>
+        <span>SAVED: <span id="save-total" style="color:var(--c)">--</span></span>
+      </div>
+      <div id="fx-rates" style="font-family:'Share Tech Mono';font-size:0.55rem;color:rgba(0,229,255,0.35);margin-top:4px;text-align:right"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;min-height:0;overflow-y:auto">
+      <div>
+        <div style="font-family:'Orbitron';font-size:0.6rem;letter-spacing:2px;color:rgba(0,229,255,0.5);border-bottom:1px solid rgba(0,229,255,0.15);padding-bottom:4px;margin-bottom:5px">COMMITMENTS</div>
+        <div id="comm-left"></div>
+      </div>
+      <div>
+        <div style="font-family:'Orbitron';font-size:0.6rem;letter-spacing:2px;color:rgba(0,229,255,0.5);border-bottom:1px solid rgba(0,229,255,0.15);padding-bottom:4px;margin-bottom:5px">SAVINGS</div>
+        <div id="comm-right"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COL 3: FINANCIAL INTEL -->
+  <section class="panel">
+    <div class="panel-title">
+      FINANCIAL INTEL
+      <span id="stocks-updated" style="font-size:0.5rem;color:rgba(0,229,255,0.3);font-family:'Share Tech Mono'"></span>
+    </div>
+    <div class="fin-section" style="flex-shrink:0">
+      <div class="fin-section-label">▸ MARKET INDICES</div>
+      <div class="index-grid" id="index-grid"></div>
+      <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.1);padding:9px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-family:'Orbitron';font-size:0.6rem;letter-spacing:2px">CRYPTO FEAR &amp; GREED</span>
+          <span id="fg-value" style="font-family:'Share Tech Mono';font-size:1rem">--</span>
+        </div>
+        <div class="fg-bar"><div class="fg-needle" id="fg-needle" style="left:50%"></div></div>
+        <div class="fg-labels"><span>EXTREME FEAR</span><span>FEAR</span><span>NEUTRAL</span><span>GREED</span><span>EXTREME GREED</span></div>
+        <div id="fg-label" style="text-align:center;font-size:0.65rem;margin-top:4px;color:rgba(255,255,255,0.5)">LOADING...</div>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;min-height:0">
+      <div class="fin-section-label">▸ INVESTMENTS OVERVIEW</div>
+      <div style="display:grid;grid-template-columns:90px 1fr 1fr 1fr 1fr;gap:4px;padding:3px 6px 5px;border-bottom:1px solid rgba(0,229,255,0.12);">
+        <div style="font-family:'Share Tech Mono';font-size:0.5rem;color:rgba(0,229,255,0.4)"></div>
+        <div style="font-family:'Share Tech Mono';font-size:0.5rem;color:rgba(0,229,255,0.4);text-align:right">PRICE / AVG BUY</div>
+        <div style="font-family:'Share Tech Mono';font-size:0.5rem;color:rgba(0,229,255,0.4);text-align:right">% CHANGE</div>
+        <div style="font-family:'Share Tech Mono';font-size:0.5rem;color:rgba(0,229,255,0.4);text-align:right">DV RCVD</div>
+        <div style="font-family:'Share Tech Mono';font-size:0.5rem;color:rgba(0,229,255,0.4);text-align:right">P/L %</div>
+      </div>
+      <div id="stocks-list"></div>
+    </div>
+  </section>
+</main>
+
+<div class="voice-ring" id="voice-ring" onclick="toggleVoice()" title="Toggle Voice">🎙</div>
+
+<script>
+const GROQ_KEY      = "xxx";
+const TICKERS       = ['NVDA','AAPL','META','MSFT','JEPQ','1155.KL','5176.KL','5258.KL','GC=F','SOL-USD'];
+const TICKER_LABELS = ['NVDA','AAPL','META','MSFT','JEPQ','MAYBANK','SUNREIT','BIMB','GOLD','SOL'];
+const TICKER_NAMES  = {
+  'NVDA':'Nvidia','AAPL':'Apple','META':'Meta Platforms','MSFT':'Microsoft',
+  'JEPQ':'JPMorgan JEPQ','MAYBANK':'Maybank Bhd','SUNREIT':'Sunway REIT',
+  'BIMB':'Bank Islam','GOLD':'Gold Futures','SOL':'Solana'
+};
+
+const today = new Date();
+let calViewMonth = today.getMonth();
+let calViewYear  = today.getFullYear();
+let voiceActive  = false;
+let recognition  = null;
+let stockCache   = {};
+let fxRates      = { MYR:1, PHP:13.5, USD:0.224 };
+let jarvisHistory = [];
+
+// Payment tasks stored in memory only (from Google Sheets)
+let paymentTasks = {}; // key: YYYY-MM-DD → array of texts
+
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+// ── CLOCK ──────────────────────────────────────────────────────────────────
+function tickClock() {
+  const d = new Date();
+  document.getElementById('big-clock').textContent = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  document.getElementById('big-date').textContent  = d.toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
+}
+setInterval(tickClock,1000); tickClock();
+
+// ── WEATHER ────────────────────────────────────────────────────────────────
+async function loadWeather() {
+  try {
+    const geo = await fetch('http://ip-api.com/json/').then(r=>r.json());
+    document.getElementById('city-name').textContent = (geo.city||'TAGUIG').toUpperCase();
+    const wx = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${geo.lat||14.5243}&longitude=${geo.lon||121.0792}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code`).then(r=>r.json());
+    const c  = wx.current;
+    const cm = {0:'CLEAR',1:'MAINLY CLEAR',2:'PARTLY CLOUDY',3:'OVERCAST',45:'FOGGY',61:'LIGHT RAIN',63:'RAIN',65:'HEAVY RAIN',80:'SHOWERS',95:'THUNDERSTORM'};
+    document.getElementById('weather-detail').textContent = `${c.temperature_2m}°C · ${cm[c.weather_code]||'UNKNOWN'}`;
+    document.getElementById('feels-like').textContent = c.apparent_temperature+'°C';
+    document.getElementById('humidity').textContent   = c.relative_humidity_2m+'%';
+    document.getElementById('wind').textContent       = c.wind_speed_10m+' km/h';
+  } catch(e) {
+    try {
+      document.getElementById('city-name').textContent = 'TAGUIG';
+      const wx = await fetch('https://api.open-meteo.com/v1/forecast?latitude=14.5243&longitude=121.0792&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code').then(r=>r.json());
+      const c = wx.current;
+      document.getElementById('weather-detail').textContent = `${c.temperature_2m}°C · CLEAR`;
+      document.getElementById('feels-like').textContent = c.apparent_temperature+'°C';
+      document.getElementById('humidity').textContent   = c.relative_humidity_2m+'%';
+      document.getElementById('wind').textContent       = c.wind_speed_10m+' km/h';
+    } catch(e2) { document.getElementById('weather-detail').textContent = '-- °C · SENSOR OFFLINE'; }
+  }
+}
+loadWeather(); setInterval(loadWeather,10*60*1000);
+
+// ── CALENDAR (read-only, shows payment tasks only) ─────────────────────────
+function shiftMonth(dir) {
+  calViewMonth += dir;
+  if(calViewMonth>11){calViewMonth=0;calViewYear++;}
+  if(calViewMonth<0){calViewMonth=11;calViewYear--;}
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('cal-grid');
+  const yr=calViewYear, mo=calViewMonth;
+  document.getElementById('cal-month-label').textContent = `${MONTH_NAMES[mo].toUpperCase()} ${yr}`;
+  grid.innerHTML='';
+  ['SUN','MON','TUE','WED','THU','FRI','SAT'].forEach(d=>grid.innerHTML+=`<div class="cal-head">${d}</div>`);
+  const firstDay    = new Date(yr,mo,1).getDay();
+  const daysInMonth = new Date(yr,mo+1,0).getDate();
+  for(let i=0;i<firstDay;i++) grid.innerHTML+=`<div class="cal-cell" style="background:rgba(0,0,0,0.2)"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const key     = `${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const tasks   = paymentTasks[key]||[];
+    const isToday = (yr===today.getFullYear()&&mo===today.getMonth()&&d===today.getDate());
+    grid.innerHTML+=`<div class="cal-cell ${isToday?'today':''}">
+      <div class="cal-day-num">${d}${isToday?'<span style="color:var(--c2);font-size:0.45rem;margin-left:3px">●</span>':''}</div>
+      ${tasks.map(t=>`<div class="cal-task-chip pay-chip" title="${t}">${t.replace('PAY:','').substring(0,14)}${t.length>20?'…':''}</div>`).join('')}
+    </div>`;
+  }
+  renderYearStrip(yr);
+  updatePayCount();
+}
+
+function renderYearStrip(yr) {
+  const strip = document.getElementById('yr-strip'); strip.innerHTML='';
+  for(let i=1;i<=12;i++){
+    let m=calViewMonth+i, y=yr;
+    while(m>11){m-=12;y++;}
+    const moKey   = `${y}-${String(m+1).padStart(2,'0')}`;
+    const moTasks = [];
+    for(let d=1;d<=31;d++){const k=`${moKey}-${String(d).padStart(2,'0')}`;if(paymentTasks[k])moTasks.push(...paymentTasks[k].map(t=>({day:d,text:t})));}
+    strip.innerHTML+=`<div class="yr-month">
+      <div><div class="yr-mo-label">${MONTH_NAMES[m].slice(0,3).toUpperCase()} ${y}</div>
+      <div class="yr-mo-count">${moTasks.length?moTasks.length+' payment'+(moTasks.length>1?'s':''):''}</div></div>
+      <div class="yr-task-list">${moTasks.length
+        ? moTasks.slice(0,6).map(t=>`<div class="yr-task-item"><div class="yr-task-dot"></div>${t.day} — ${t.text.replace('PAY:','').trim()}</div>`).join('')+(moTasks.length>6?`<div style="color:rgba(0,229,255,0.3);font-size:0.6rem">+${moTasks.length-6} more</div>`:'')
+        : '<div class="yr-no-task">No payments scheduled</div>'
+      }</div></div>`;
+  }
+}
+
+function updatePayCount() {
+  let total=0; Object.values(paymentTasks).forEach(a=>total+=a.length);
+  document.getElementById('pay-count').textContent=total+' PAYMENTS';
+}
+
+function checkTodayPayments() {
+  const key=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const t=paymentTasks[key]||[];
+  if(t.length>0) log('log-sys',`[TODAY] ${t.length} payment(s) due: ${t.map(x=>x.replace('PAY:','').trim()).join(' · ')}`);
+}
+
+// ── STOCKS ─────────────────────────────────────────────────────────────────
+async function fetchStockPrice(ticker) {
+  const url     = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=5d`;
+  const proxies = [
+    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+  ];
+  for(const proxy of proxies){
+    try{
+      const res    = await fetch(proxy,{signal:AbortSignal.timeout(6000)});
+      const json   = await res.json();
+      const raw    = typeof json.contents==='string'?JSON.parse(json.contents):json;
+      const result = raw.chart.result[0];
+      const meta   = result.meta;
+      const price  = meta.regularMarketPrice;
+      const quotes = result.indicators?.quote?.[0];
+      const closes = quotes?.close?.filter(v=>v!=null);
+      let prev     = meta.chartPreviousClose||meta.previousClose;
+      if(closes&&closes.length>=2) prev=closes[closes.length-2];
+      if(price) return {price,chg:prev?((price-prev)/prev*100):0};
+    }catch(e){continue;}
+  }
+  return null;
+}
+
+let holdingsCache = {};
+const LABEL_TO_SHEET_TICKER = {'MAYBANK':'1155','SUNREIT':'5176','BIMB':'5258'};
+
+async function loadHoldings() {
+  try{
+    const res  = await fetch('http://localhost:5000/get-retirement');
+    const data = await res.json();
+    if(data.error){console.warn('[HOLDINGS]',data.error);return;}
+    [...(data.div||[]),...(data.growth||[])].forEach(h=>{holdingsCache[h.ticker]=h;});
+  }catch(e){console.warn('[HOLDINGS] Bridge offline.');}
+}
+
+async function renderStocks() {
+  const list = document.getElementById('stocks-list');
+  list.innerHTML = TICKERS.map((t,i)=>`
+    <div class="stock-row" id="sc-${i}">
+      <div><div class="stock-row-ticker">${TICKER_LABELS[i]}</div><div class="stock-row-name">${TICKER_NAMES[TICKER_LABELS[i]]||''}</div></div>
+      <div class="shimmer" style="height:18px;border-radius:2px"></div>
+      <div class="shimmer" style="height:14px;border-radius:2px"></div>
+      <div style="font-family:'Share Tech Mono';font-size:0.78rem;color:rgba(255,255,255,0.25);text-align:right">--</div>
+      <div style="font-family:'Share Tech Mono';font-size:0.78rem;color:rgba(255,255,255,0.25);text-align:right">--</div>
+    </div>`).join('');
+
+  for(let i=0;i<TICKERS.length;i++){
+    const data     = await fetchStockPrice(TICKERS[i]);
+    const row      = document.getElementById(`sc-${i}`);
+    if(!row) continue;
+    const label    = TICKER_LABELS[i];
+    const sheetKey = LABEL_TO_SHEET_TICKER[label]||label;
+    const h        = holdingsCache[sheetKey]||{};
+    const isMYR    = ['MAYBANK','SUNREIT','BIMB'].includes(label);
+    const isJEPQ   = label==='JEPQ';
+    const sym      = isMYR?'RM':'$';
+    const fmtPrice = p=>p!=null?sym+p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';
+    const avgBuyV  = (isJEPQ&&h.avg_buy!=null)?h.avg_buy*fxRates.USD:h.avg_buy;
+    const fmtAvg   = avgBuyV!=null?sym+avgBuyV.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';
+    const dvV      = isJEPQ&&h.dv_received!=null?h.dv_received*fxRates.USD:h.dv_received;
+    const fmtDV    = dvV!=null&&dvV>0?sym+dvV.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';
+    const plPct    = h.pl_pct!=null?((h.pl_pct>=0?'+':'')+h.pl_pct.toFixed(2)+'%'):'--';
+    const plColor  = h.pl_pct!=null?(h.pl_pct>=0?'var(--c3)':'var(--c2)'):'rgba(255,255,255,0.3)';
+
+    if(data){
+      stockCache[label]=data;
+      const dir=data.chg>=0;
+      row.innerHTML=`
+        <div><div class="stock-row-ticker">${label}</div><div class="stock-row-name">${TICKER_NAMES[label]||''}</div></div>
+        <div style="text-align:right;line-height:1.4">
+          <div style="font-family:'Share Tech Mono';font-size:0.95rem;color:#fff">${fmtPrice(data.price)}</div>
+          <div style="font-family:'Share Tech Mono';font-size:0.72rem;color:rgba(255,255,255,0.45)">${fmtAvg}</div>
+        </div>
+        <div style="font-size:0.82rem;text-align:right;color:${dir?'var(--c3)':'var(--c2)'}">${dir?'▲':'▼'} ${Math.abs(data.chg).toFixed(2)}%</div>
+        <div style="font-family:'Share Tech Mono';font-size:0.82rem;color:var(--c4);text-align:right">${fmtDV}</div>
+        <div style="font-family:'Share Tech Mono';font-size:0.82rem;color:${plColor};text-align:right">${plPct}</div>`;
+    } else {
+      row.innerHTML=`
+        <div><div class="stock-row-ticker">${label}</div><div class="stock-row-name">${TICKER_NAMES[label]||''}</div></div>
+        <div style="text-align:right;line-height:1.4">
+          <div style="font-family:'Share Tech Mono';font-size:0.95rem;color:rgba(255,255,255,0.3)">N/A</div>
+          <div style="font-family:'Share Tech Mono';font-size:0.72rem;color:rgba(255,255,255,0.45)">${fmtAvg}</div>
+        </div>
+        <div style="font-size:0.82rem;text-align:right;color:rgba(255,255,255,0.2)">--</div>
+        <div style="font-family:'Share Tech Mono';font-size:0.82rem;color:var(--c4);text-align:right">${fmtDV}</div>
+        <div style="font-family:'Share Tech Mono';font-size:0.82rem;color:${plColor};text-align:right">${plPct}</div>`;
+    }
+  }
+  document.getElementById('stocks-updated').textContent=`UPDATED ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
+}
+
+async function renderIndices() {
+  const grid  = document.getElementById('index-grid');
+  const pairs = [['%5EGSPC','S&P 500'],['%5EIXIC','NASDAQ']];
+  grid.innerHTML=pairs.map(([t,n])=>`<div class="index-card"><div class="index-name">${n}</div><div class="index-val shimmer" id="idx-${t}">--</div><div class="index-chg" id="idxc-${t}">--</div></div>`).join('');
+  for(const [ticker,name] of pairs){
+    const data=await fetchStockPrice(ticker);
+    const el=document.getElementById(`idx-${ticker}`);
+    const elc=document.getElementById(`idxc-${ticker}`);
+    if(el) el.classList.remove('shimmer');
+    if(data&&el){const dir=data.chg>=0;el.textContent=data.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});elc.innerHTML=`<span style="color:${dir?'var(--c3)':'var(--c2)'}">${dir?'▲':'▼'} ${Math.abs(data.chg).toFixed(2)}%</span>`;}
+    else if(el) el.textContent='N/A';
+  }
+}
+
+async function renderFearGreed() {
+  try{
+    const res   = await fetch('https://api.alternative.me/fng/?limit=1');
+    const json  = await res.json();
+    const entry = json.data[0];
+    const score = parseInt(entry.value);
+    const rating= entry.value_classification.toUpperCase();
+    document.getElementById('fg-value').textContent   = score;
+    document.getElementById('fg-needle').style.left   = score+'%';
+    document.getElementById('fg-label').textContent   = rating;
+    const colors={'EXTREME FEAR':'#e74c3c','FEAR':'#e67e22','NEUTRAL':'#f1c40f','GREED':'#2ecc71','EXTREME GREED':'#27ae60'};
+    const col=colors[rating]||'#fff';
+    document.getElementById('fg-value').style.color=col;
+    document.getElementById('fg-label').style.color=col;
+  }catch(e){document.getElementById('fg-label').textContent='DATA UNAVAILABLE';}
+}
+
+// ── FX ─────────────────────────────────────────────────────────────────────
+async function loadFxRates() {
+  try{
+    const res       = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const data      = await res.json();
+    const usdToMyr  = data.rates.MYR||4.46;
+    fxRates.MYR=1; fxRates.USD=1/usdToMyr; fxRates.PHP=data.rates.PHP/usdToMyr;
+    const el=document.getElementById('fx-rates');
+    if(el) el.textContent=`1 MYR = ${fxRates.PHP.toFixed(2)} PHP = ${(1/usdToMyr).toFixed(4)} USD`;
+    const rateEl=document.getElementById('usd-myr-rate');
+    if(rateEl) rateEl.textContent=`1 USD = RM ${usdToMyr.toFixed(4)}`;
+  }catch(e){}
+}
+
+function toMYR(amount,currency){
+  if(!amount) return 0;
+  if(currency==='PHP') return amount/fxRates.PHP;
+  if(currency==='USD') return amount/fxRates.USD;
+  return amount;
+}
+
+function formatAmt(amount,currency){
+  if(amount==null) return '';
+  const sym={MYR:'RM',PHP:'₱',USD:'$'}[currency]||'RM';
+  return `${sym}${amount.toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+}
+
+// ── COMMITMENTS ────────────────────────────────────────────────────────────
+async function syncCommitment() {
+  log('log-sys','[SYNC] Loading commitment data...');
+  try{
+    await loadFxRates();
+    const res  = await fetch('http://localhost:5000/get-commitment');
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+
+    renderCommitmentExcel(data.commitments, data.savings);
+
+    // Rebuild payment tasks from Google Sheets
+    paymentTasks = {};
+    if(data.calendar_tasks && data.calendar_tasks.length>0){
+      data.calendar_tasks.forEach(ct=>{
+        const key=`${ct.year}-${String(ct.month).padStart(2,'0')}-${String(ct.day).padStart(2,'0')}`;
+        if(!paymentTasks[key]) paymentTasks[key]=[];
+        paymentTasks[key].push(ct.text);
+      });
+      renderCalendar();
+      log('log-sys',`[SYNC] ${data.calendar_tasks.length} payment dates loaded into calendar.`);
+    }
+
+    checkTodayPayments();
+    log('log-sys','[SYNC] Commitment data loaded.');
+  }catch(e){ log('log-err','[SYNC] Could not load data. Is bridge.py running?'); }
+}
+
+function renderCommitmentExcel(commitments, savings) {
+  const leftEl  = document.getElementById('comm-left');
+  const rightEl = document.getElementById('comm-right');
+  const commTotal = commitments.filter(r=>r.is_total).reduce((s,r)=>s+(r.amount_myr||0),0);
+  const saveTotal = savings.filter(r=>r.is_total).reduce((s,r)=>s+(r.amount_myr||0),0);
+  const pct    = commTotal>0?Math.min((saveTotal/commTotal)*100,100):0;
+  const isDone = saveTotal>=commTotal;
+  document.getElementById('comm-pct-label').textContent  = isDone?'✓ SECURED':pct.toFixed(1)+'%';
+  document.getElementById('comm-pct-label').style.color  = isDone?'var(--c3)':pct>=70?'var(--c)':'var(--c2)';
+  document.getElementById('comm-pct-bar').style.width    = pct+'%';
+  document.getElementById('comm-pct-bar').className      = 'prog-bar-fill '+(isDone?'done':pct>=50?'on-track':'behind');
+  document.getElementById('comm-total').textContent      = 'RM '+commTotal.toLocaleString('en-MY',{minimumFractionDigits:2});
+  document.getElementById('save-total').textContent      = 'RM '+saveTotal.toLocaleString('en-MY',{minimumFractionDigits:2});
+
+  function rowHTML(r,isRight){
+    const origAmt = formatAmt(r.amount,r.currency||'MYR');
+    const myrNote = r.currency&&r.currency!=='MYR'&&r.amount&&!r.is_total?`<span style="color:rgba(0,229,255,0.35);font-size:0.5rem"> (RM${toMYR(r.amount,r.currency).toFixed(0)})</span>`:'';
+    const tc = isRight?'var(--c)':'var(--c2)';
+    return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(0,229,255,0.05);min-height:24px;align-items:center;${r.is_total?'border-top:1px solid rgba(0,229,255,0.2);margin-top:3px;padding-top:5px;':''}${r._spacer?'opacity:0;pointer-events:none;':''}">
+      <span style="font-size:0.62rem;color:${r.is_total?tc:'rgba(255,255,255,0.6)'};font-weight:${r.is_total?'700':'400'};padding-right:4px;line-height:1.4">${r.label||''}</span>
+      <span style="font-family:'Share Tech Mono';font-size:0.62rem;white-space:nowrap;color:${r.is_total?tc:'rgba(255,255,255,0.8)'}">
+        ${r.amount_myr!=null&&!r._spacer?origAmt+myrNote:''}
+      </span></div>`;
+  }
+
+  const maxLen=Math.max(commitments.length,savings.length);
+  const pC=[...commitments]; const pS=[...savings];
+  while(pC.length<maxLen) pC.push({label:'',amount:null,amount_myr:null,currency:'MYR',_spacer:true});
+  while(pS.length<maxLen) pS.push({label:'',amount:null,amount_myr:null,currency:'MYR',_spacer:true});
+  leftEl.innerHTML  = pC.map(r=>rowHTML(r,false)).join('');
+  rightEl.innerHTML = pS.map(r=>rowHTML(r,true)).join('');
+}
+
+// ── JARVIS AI ──────────────────────────────────────────────────────────────
+function log(cls,msg){
+  const el=document.getElementById('ai-log');
+  el.innerHTML+=`<div class="${cls}">${msg}</div>`;
+  el.scrollTop=el.scrollHeight;
+}
+
+function clearLog(){
+  document.getElementById('ai-log').innerHTML='<div class="log-sys">[SYS] Memory purged. Ready.</div>';
+  jarvisHistory=[];
+}
+
+async function sendCmd(){
+  const inp=document.getElementById('user-input');
+  const query=inp.value.trim(); if(!query) return;
+  document.getElementById('user-input').value='';
+  const q=query.toLowerCase();
+
+  if(q.includes('turn off mic')||q.includes('mic off')||q.includes('stop listening')){
+    stopVoice(); log('log-jarvis','[JARVIS] Mic deactivated, Sir.'); speak("Mic deactivated, Sir."); return;
+  }
+  if(q.includes('turn on mic')||q.includes('mic on')||q.includes('start listening')){ startVoice(); return; }
+
+  const timerMins=parseTimerCommand(q);
+  if(timerMins&&timerMins>0&&timerMins<=240){ setTimer(timerMins,`${timerMins} minute timer`); speak(`Timer set for ${timerMins} minutes, Sir.`); return; }
+  if(q.includes('cancel alarm')||q.includes('stop alarm')||q.includes('clear alarm')){ cancelAlarms(); return; }
+  const alarm=parseAlarmCommand(q);
+  if(alarm){ const t=setAlarm(alarm.hour,alarm.min,''); speak(`Alarm set for ${t}, Sir.`); return; }
+  const appName=parseAppCommand(query);
+  if(appName){ openApp(appName); return; }
+  const waCmd=parseWhatsAppCommand(query);
+  if(waCmd){ sendWhatsApp(waCmd.phone,waCmd.message,waCmd.contact); return; }
+
+  await askJarvis(query);
+}
+
+function buildContext(){
+  const now=new Date();
+  const timeStr=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+  const dateStr=now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const city=document.getElementById('city-name').textContent;
+  const weather=document.getElementById('weather-detail').textContent;
+  const feelsLike=document.getElementById('feels-like').textContent;
+  const humidity=document.getElementById('humidity').textContent;
+  const wind=document.getElementById('wind').textContent;
+  const commTotal=document.getElementById('comm-total')?.textContent||'unknown';
+  const saveTotal=document.getElementById('save-total')?.textContent||'unknown';
+  const commPct=document.getElementById('comm-pct-label')?.textContent||'unknown';
+  // Today's payments
+// All payments grouped by month
+  const allPayments={};
+  Object.entries(paymentTasks).forEach(([key,tasks])=>{
+    const [y,m,d]=key.split('-');
+    const monthLabel=`${MONTH_NAMES[parseInt(m)-1]} ${y}`;
+    if(!allPayments[monthLabel]) allPayments[monthLabel]=[];
+    tasks.forEach(t=>allPayments[monthLabel].push(`Day ${parseInt(d)}: ${t.replace('PAY:','').trim()}`));
+  });
+
+  const allPaySummary=Object.entries(allPayments)
+    .map(([month,payments])=>`${month} (${payments.length} payments): ${payments.join(' | ')}`)
+    .join('\n');
+
+  // Monthly totals from commitments panel
+  const commItems=[...document.querySelectorAll('#comm-left > div')].map(el=>{
+    const label=el.querySelector('span:first-child')?.textContent?.trim();
+    const amount=el.querySelector('span:last-child')?.textContent?.trim();
+    return (label&&amount)?`${label}: ${amount}`:null;
+  }).filter(Boolean);
+
+  const commTotalByMonth=commItems.join(', ');
+
+  // Today's payments
+  const todayKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const todayPay=(paymentTasks[todayKey]||[]).map(t=>t.replace('PAY:','').trim()).join(', ')||'None';
+  const stockSummary=Object.entries(stockCache).map(([t,d])=>`${t}: $${d.price.toFixed(2)} (${d.chg.toFixed(2)}%)`).join(', ');
+  const fgVal=document.getElementById('fg-value').textContent;
+  const fgLabel=document.getElementById('fg-label').textContent;
+  const sp500=document.getElementById('idx-%5EGSPC')?.textContent||'loading';
+  const nasdaq=document.getElementById('idx-%5EIXIC')?.textContent||'loading';
+  const usdMyr=document.getElementById('usd-myr-rate')?.textContent||'';
+
+  // Holdings from Google Sheets via holdingsCache
+  const TICKER_DISPLAY={'1155':'MAYBANK','5176':'SUNREIT','5258':'BIMB','JEPQ':'JEPQ','NVDA':'NVDA','AAPL':'AAPL','META':'META','MSFT':'MSFT'};
+  const holdingsSummary=Object.entries(holdingsCache).map(([ticker,h])=>{
+    const isMYR=['1155','5176','5258'].includes(ticker);
+    const sym=isMYR?'RM':'$';
+    const avgBuy=h.avg_buy!=null?`${sym}${h.avg_buy.toFixed(2)}`:'--';
+    const displayName=TICKER_DISPLAY[ticker]||ticker;
+    return `${displayName} (${ticker}): avg buy ${avgBuy}, P/L ${h.pl_pct?.toFixed(2)||'--'}%`;
+  }).join('\n');
+
+  // Read P/L directly from rendered stock rows — most accurate
+  // Read P/L directly from rendered stock rows — most accurate
+  const domHoldings=[];
+  document.querySelectorAll('#stocks-list .stock-row').forEach(row=>{
+    const ticker=row.querySelector('.stock-row-ticker')?.textContent?.trim();
+    if(!ticker) return;
+    // Get all 5 columns in order: [ticker col, price/avg col, change col, dv col, pl col]
+    const cols=[...row.children];
+    const price=cols[1]?.querySelector('[style*="0.95rem"]')?.textContent?.trim()||'--';
+    const avg=cols[1]?.querySelector('[style*="0.72rem"]')?.textContent?.trim()||'--';
+    const chg=cols[2]?.textContent?.trim()||'--';
+    const dv=cols[3]?.textContent?.trim()||'--';
+    const pl=cols[4]?.textContent?.trim()||'--';
+    domHoldings.push(`${ticker}: price ${price}, avg buy ${avg}, daily change ${chg}, dividend received ${dv}, P/L% ${pl}`);
+  });
+  const domHoldingsSummary=domHoldings.join('\n');
+
+  return `TIME: ${timeStr}
+DATE: ${dateStr}
+LOCATION: ${city}
+LIVE WEATHER (use exclusively for weather questions):
+  Temperature: ${weather}
+  Feels Like: ${feelsLike}
+  Humidity: ${humidity}
+  Wind: ${wind}
+PAYMENTS DUE TODAY: ${todayPay}
+ALL PAYMENTS BY MONTH:
+${allPaySummary||'None loaded'}
+COMMITMENT LINE ITEMS (use for total questions):
+${commTotalByMonth||'None loaded'}
+COMMITMENTS: ${commTotal} | SAVED: ${saveTotal} | READINESS: ${commPct}
+FX RATE: ${usdMyr}
+LIVE PRICES: ${stockSummary||'loading'}
+MY HOLDINGS — LIVE FROM SCREEN (use exclusively for avg buy, P/L, dividend questions):
+${domHoldingsSummary||holdingsSummary||'Not loaded'}
+S&P 500: ${sp500} | NASDAQ: ${nasdaq}
+CRYPTO F&G: ${fgVal} (${fgLabel})`.trim();
+}
+
+async function askJarvis(query){
+  log('log-user',`> ${query}`);
+  log('log-sys','[JARVIS] Processing...');
+
+  const recentCtx=jarvisHistory.slice(-6).map(m=>({
+    role: m.role,
+    content: m.content
+  }));
+
+  const systemPrompt=`You are JARVIS, an elite AI assistant for a personal mission control dashboard.
+Be concise, analytical, slightly formal. Address user as "Sir". Under 100 words. Plain text only. Answer directly.
+Use web search only for current news, public events, or general knowledge questions.
+CRITICAL: For weather — use DASHBOARD CONTEXT data only, never web search.
+CRITICAL: For avg buy, P/L%, dividends, holdings — use MY HOLDINGS from DASHBOARD CONTEXT only.
+CRITICAL: For live stock prices — use LIVE PRICES from DASHBOARD CONTEXT only.
+CRITICAL: For payments, commitments, savings — use DASHBOARD CONTEXT only.
+
+${buildContext()}`;
+
+  const messages=[
+    ...recentCtx,
+    {role:'user', content: query}
+  ];
+
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),20000);
+
+  try{
+    const res=await fetch('http://localhost:5000/jarvis-query',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      signal:controller.signal,
+      body:JSON.stringify({system:systemPrompt, messages})
+    });
+
+    const data=await res.json();
+
+    const logEl=document.getElementById('ai-log');
+    const last=logEl.lastElementChild;
+    if(last&&last.textContent.includes('Processing')) logEl.removeChild(last);
+
+    if(data.error){
+      log('log-err',`[AI] ${data.error}`);
+      return;
+    }
+
+    const reply=(data.reply||'').trim();
+    if(!reply){
+      log('log-jarvis','[JARVIS] Apologies Sir, I did not catch that. Could you rephrase?');
+      speak('Apologies Sir, could you rephrase that?');
+      return;
+    }
+
+    log('log-jarvis',`[JARVIS] ${reply}`);
+    speak(reply);
+    jarvisHistory.push({role:'user',content:query});
+    jarvisHistory.push({role:'assistant',content:reply});
+    if(jarvisHistory.length>20) jarvisHistory=jarvisHistory.slice(-20);
+
+  }catch(e){
+    const logEl=document.getElementById('ai-log');
+    const last=logEl.lastElementChild;
+    if(last&&last.textContent.includes('Processing')) logEl.removeChild(last);
+    log('log-err',`[AI] ${e.name==='AbortError'?'Timeout':e.message}`);
+  }finally{
+    clearTimeout(timeout);
+  }
+}
+
+
+// ── VOICE ──────────────────────────────────────────────────────────────────
+function speak(text){
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=1.05;u.pitch=0.9;u.volume=1;
+  const voices=window.speechSynthesis.getVoices();
+  const deep=voices.find(v=>v.name.toLowerCase().includes('male')||v.name.toLowerCase().includes('david')||v.name.toLowerCase().includes('alex'));
+  if(deep) u.voice=deep;
+  u.onstart=()=>{if(recognition){try{recognition.stop();}catch(e){}}};
+  u.onend=()=>{if(voiceActive) setTimeout(()=>{if(voiceActive) startVoice();},600);};
+  window.speechSynthesis.speak(u);
+}
+
+function toggleVoice(){if(voiceActive)stopVoice();else startVoice();}
+
+function startVoice(){
+  const SpeechAPI=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SpeechAPI){log('log-err','[ERR] Use Chrome for voice support.');return;}
+  if(recognition){try{recognition.stop();}catch(e){}recognition=null;}
+  recognition=new SpeechAPI();
+  recognition.continuous=true;recognition.interimResults=false;recognition.lang='en-US';
+  recognition.onresult=(e)=>{
+    const txt=e.results[e.results.length-1][0].transcript.toLowerCase().trim();
+    if(txt.length<2) return;
+    log('log-sys',`[MIC] Heard: "${txt}"`);
+    if(txt.includes('turn off')||txt.includes('mic off')||txt.includes('stop listening')||txt.includes('sleep')||txt.includes('jarvis off')){
+      log('log-jarvis','[JARVIS] Mic deactivated, Sir.'); speak("Mic deactivated, Sir."); stopVoice(); return;
+    }
+    let cmd=txt;
+    if(txt.includes('hey jarvis')||txt.includes('jarvis')){
+      cmd=txt.replace(/hey jarvis|jarvis/gi,'').trim();
+      if(!cmd){log('log-jarvis','[JARVIS] Yes, Sir. Awaiting your command.');speak("Yes Sir, awaiting your command.");return;}
+    }
+    const timerMins=parseTimerCommand(cmd);
+    if(timerMins&&timerMins>0&&timerMins<=240){setTimer(timerMins,`${timerMins} minute timer`);speak(`Timer set for ${timerMins} minutes, Sir.`);log('log-jarvis',`[JARVIS] Timer set for ${timerMins} minutes, Sir.`);return;}
+    if(cmd.includes('cancel alarm')||cmd.includes('stop alarm')||cmd.includes('clear alarm')){cancelAlarms();return;}
+    const alarm=parseAlarmCommand(cmd);
+    if(alarm){const t=setAlarm(alarm.hour,alarm.min,'');speak(`Alarm set for ${t}, Sir.`);log('log-jarvis',`[JARVIS] Alarm set for ${t}, Sir.`);return;}
+    const appName=parseAppCommand(cmd);
+    if(appName){openApp(appName);return;}
+    const waCmd=parseWhatsAppCommand(cmd);
+    if(waCmd){sendWhatsApp(waCmd.phone,waCmd.message,waCmd.contact);return;}
+    askJarvis(txt.includes('hey jarvis')||txt.includes('jarvis')?cmd:txt);
+  };
+  recognition.onerror=(e)=>{
+    if(e.error==='aborted') return;
+    if(e.error==='not-allowed'){log('log-err','[MIC] Permission denied.');return;}
+    setTimeout(()=>{if(voiceActive) startVoice();},1000);
+  };
+  recognition.onend=()=>{if(voiceActive&&!window.speechSynthesis.speaking) setTimeout(()=>{if(voiceActive){try{recognition&&recognition.start();}catch(e){}}},300);};
+  try{
+    recognition.start();voiceActive=true;
+    document.getElementById('mic-btn').classList.add('active');
+    document.getElementById('voice-ring').classList.add('active');
+    document.getElementById('mic-btn').textContent='🎙 LIVE';
+    log('log-sys','[MIC] LIVE — Say "Hey Jarvis" + command.');
+  }catch(e){log('log-err','[MIC] Failed. Allow mic permission and click MIC.');}
+}
+
+function stopVoice(){
+  if(recognition){try{recognition.stop();}catch(e){}recognition=null;}
+  voiceActive=false;
+  document.getElementById('mic-btn').classList.remove('active');
+  document.getElementById('voice-ring').classList.remove('active');
+  document.getElementById('mic-btn').textContent='🎙 MIC';
+  log('log-sys','[MIC] Off. Click MIC to reactivate.');
+}
+
+// ── TIMER ──────────────────────────────────────────────────────────────────
+let activeTimers=[];
+function setTimer(minutes,label){
+  const ms=minutes*60*1000;
+  const id=setTimeout(()=>{
+    log('log-jarvis',`[TIMER] ⏰ ${label} — TIME'S UP, Sir.`);
+    speak(`Sir, your ${label} has ended.`);
+    if(Notification.permission==='granted') new Notification('JARVIS TIMER',{body:label});
+    playBeep();
+  },ms);
+  activeTimers.push({id,label,endsAt:Date.now()+ms});
+  log('log-sys',`[TIMER] Set: ${label} — ends at ${new Date(Date.now()+ms).toLocaleTimeString()}`);
+  Notification.requestPermission();
+}
+function playBeep(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    for(let i=0;i<3;i++){
+      const osc=ctx.createOscillator();const gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.frequency.value=880;osc.type='sine';
+      gain.gain.setValueAtTime(0.3,ctx.currentTime+i*0.4);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.4+0.3);
+      osc.start(ctx.currentTime+i*0.4);osc.stop(ctx.currentTime+i*0.4+0.3);
+    }
+  }catch(e){}
+}
+function parseTimerCommand(txt){
+  const patterns=[
+    /(?:set|start|create)?\s*(?:a\s+)?(\d+)\s*(?:minute|min|minutes)\s*(?:timer|alarm|reminder)?/i,
+    /(?:remind me|alert me)\s+in\s+(\d+)\s*(?:minute|min|minutes)/i,
+    /(?:timer|alarm)\s+(?:for\s+)?(\d+)\s*(?:minute|min|minutes)/i,
+    /(\d+)\s*(?:minute|min|minutes)\s*(?:timer|alarm|reminder)/i,
+  ];
+  for(const p of patterns){const m=txt.match(p);if(m) return parseInt(m[1]);}
+  return null;
+}
+
+// ── ALARM ──────────────────────────────────────────────────────────────────
+let activeAlarms=[];
+function setAlarm(hour,minute,label){
+  const now=new Date();const alarmTime=new Date();
+  alarmTime.setHours(hour,minute,0,0);
+  if(alarmTime<=now) alarmTime.setDate(alarmTime.getDate()+1);
+  const ms=alarmTime.getTime()-now.getTime();
+  const timeStr=alarmTime.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true});
+  const id=setTimeout(()=>{
+    log('log-jarvis',`[ALARM] ⏰ ${label||'Alarm'}`);
+    speak(`Sir, it is ${timeStr}. ${label||'Your alarm is going off.'}`);
+    if(Notification.permission==='granted') new Notification('JARVIS ALARM',{body:`${timeStr}`});
+    playBeep();
+    activeAlarms=activeAlarms.filter(a=>a.id!==id);
+  },ms);
+  activeAlarms.push({id,label:label||'Alarm',time:timeStr});
+  log('log-sys',`[ALARM] Set for ${timeStr}`);
+  Notification.requestPermission();
+  return timeStr;
+}
+function parseAlarmCommand(txt){
+  const patterns=[
+    /(?:set|create)?\s*(?:an?\s+)?(?:alarm|wake me(?:\s+up)?)\s+(?:at|for)?\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i,
+    /(?:alarm|wake)\s+(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i,
+    /(\d{1,2})(?::(\d{2}))?\s*(am|pm)\s+(?:alarm|wake)/i,
+  ];
+  for(const p of patterns){
+    const m=txt.match(p);
+    if(m){
+      let hour=parseInt(m[1]);const min=parseInt(m[2]||'0');const period=(m[3]||'').toLowerCase();
+      if(period==='pm'&&hour!==12) hour+=12;
+      if(period==='am'&&hour===12) hour=0;
+      if(hour>=0&&hour<=23&&min>=0&&min<=59) return {hour,min};
+    }
+  }
+  return null;
+}
+function cancelAlarms(){activeAlarms.forEach(a=>clearTimeout(a.id));activeAlarms=[];log('log-sys','[ALARM] All alarms cancelled.');speak('All alarms cancelled, Sir.');}
+
+// ── APP LAUNCHER ───────────────────────────────────────────────────────────
+const APP_KEYWORDS=['chrome','excel','word','notepad','calculator','spotify','telegram','whatsapp','vscode','vs code','explorer','file explorer','task manager'];
+function parseAppCommand(txt){
+  const t=txt.toLowerCase();
+  if(!t.includes('open')&&!t.includes('launch')&&!t.includes('start')) return null;
+  for(const app of APP_KEYWORDS){if(t.includes(app)) return app;}
+  return null;
+}
+async function openApp(appName){
+  log('log-sys',`[APP] Opening ${appName}...`);
+  try{
+    const res=await fetch('http://localhost:5000/open-app',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({app:appName})});
+    const data=await res.json();
+    if(data.success){log('log-jarvis',`[JARVIS] Opening ${appName}, Sir.`);speak(`Opening ${appName}, Sir.`);}
+    else{log('log-err',`[APP] ${data.error}`);speak(`Sorry Sir, I could not open ${appName}.`);}
+  }catch(e){log('log-err','[APP] Bridge offline.');}
+}
+
+// ── WHATSAPP ───────────────────────────────────────────────────────────────
+const CONTACTS={'girlfriend':'60164480805','sister':'60103758415'};
+function parseWhatsAppCommand(txt){
+  const patterns=[
+    /(?:send\s+)?(?:whatsapp|message|msg)\s+(?:to\s+)?(\w+)\s+(?:saying\s+|say\s+|that\s+)?(.+)/i,
+    /(?:text|message)\s+(\w+)\s+(?:saying\s+|say\s+|that\s+)?(.+)/i,
+  ];
+  for(const p of patterns){
+    const m=txt.match(p);
+    if(m){
+      const contact=m[1].toLowerCase();
+      let message=m[2].trim().replace(/^(saying|say|that|telling|tell)\s+/i,'').trim();
+      const phone=CONTACTS[contact];
+      if(phone) return {phone,message,contact};
+    }
+  }
+  return null;
+}
+async function sendWhatsApp(phone,message,contact){
+  log('log-sys',`[WHATSAPP] Opening chat with ${contact}...`);
+  try{
+    const res=await fetch('http://localhost:5000/whatsapp-message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,message})});
+    const data=await res.json();
+    if(data.success){log('log-jarvis',`[JARVIS] Opening WhatsApp to ${contact}, Sir.`);speak(`Opening WhatsApp to ${contact}, Sir.`);}
+    else log('log-err',`[WHATSAPP] ${data.error}`);
+  }catch(e){log('log-err','[WHATSAPP] Bridge offline.');}
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+window.onload=async()=>{
+  renderCalendar();
+  await loadHoldings();
+  await syncCommitment();
+  renderStocks();renderIndices();renderFearGreed();loadFxRates();
+  setInterval(async()=>{await loadHoldings();renderStocks();renderIndices();renderFearGreed();},3*60*1000);
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
+  const autoStart=(e)=>{
+    if(!voiceActive){
+      document.removeEventListener('click',autoStart);
+      document.removeEventListener('keydown',autoStart);
+      startVoice();
+      setTimeout(()=>speak("JARVIS online. Mission control active. Awaiting your command, Sir."),500);
+    }
+  };
+  document.addEventListener('click',autoStart);
+  document.addEventListener('keydown',autoStart);
+  log('log-sys','[SYS] Click anywhere to activate voice.');
+};
+</script>
+</body>
+</html>
