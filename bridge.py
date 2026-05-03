@@ -12,9 +12,102 @@ app = Flask(__name__)
 CORS(app)
 
 SPREADSHEET_ID = '15K66bJwqfS4lh1c_oagH759XR25uu101rx5EBasWAqw'
-RETIREMENT_GID  = '1170100384'
 
 import pandas as pd
+
+SUPABASE_URL = "https://gslybwjzsfprkjgximqe.supabase.co"
+SUPABASE_KEY = "xxx"
+
+@app.route('/get-portfolio')
+def get_portfolio():
+    try:
+        headers = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}"
+        }
+
+        # Fetch all transactions
+        tx_res = requests.get(
+            f"{SUPABASE_URL}/rest/v1/transactions?select=*&order=date.asc",
+            headers=headers
+        )
+        transactions = tx_res.json()
+
+        # Fetch all dividends
+        dv_res = requests.get(
+            f"{SUPABASE_URL}/rest/v1/dividends?select=*",
+            headers=headers
+        )
+        dividends = dv_res.json()
+
+        # Group dividends by ticker
+        div_by_ticker = {}
+        for d in dividends:
+            t = d['ticker']
+            if t not in div_by_ticker:
+                div_by_ticker[t] = 0.0
+            div_by_ticker[t] += float(d['amount'] or 0)
+
+        # Calculate holdings using average cost method
+        holdings = {}
+        for tx in transactions:
+            ticker  = tx['ticker']
+            market  = tx['market']
+            action  = (tx['action'] or '').upper()
+            units   = float(tx['units'] or 0)
+            price   = float(tx['price'] or 0)
+            tx_type = (tx.get('type') or 'growth').lower()
+
+            if ticker not in holdings:
+                holdings[ticker] = {
+                    'ticker':     ticker,
+                    'market':     market,
+                    'type':       tx_type,
+                    'units':      0.0,
+                    'cost_basis': 0.0,
+                    'realised':   0.0,
+                }
+
+            h = holdings[ticker]
+
+            if action == 'BUY':
+                h['cost_basis'] += units * price
+                h['units']      += units
+
+            elif action == 'SELL':
+                if h['units'] > 0:
+                    avg_cost = h['cost_basis'] / h['units']
+                    realised = (price - avg_cost) * units
+                    h['realised']   += realised
+                    h['cost_basis'] -= avg_cost * units
+                    h['units']      -= units
+
+        # Build result with P/L calculation
+        result = []
+        for ticker, h in holdings.items():
+            if h['units'] < 0.0001:
+                continue
+
+            avg_cost    = h['cost_basis'] / h['units'] if h['units'] > 0 else 0
+            divs        = div_by_ticker.get(ticker, 0.0)
+            is_dividend = h['type'] == 'dividend'
+
+            # These will be filled with live price from frontend
+            result.append({
+                'ticker':    ticker,
+                'market':    h['market'],
+                'type':      h['type'],
+                'units':     round(h['units'], 5),
+                'avg_cost':  round(avg_cost, 4),
+                'cost_basis':round(h['cost_basis'], 2),
+                'realised':  round(h['realised'], 2),
+                'dividends': round(divs, 2),
+            })
+
+        return jsonify({"holdings": result})
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 @app.route('/jarvis-query', methods=['POST'])
 def jarvis_query():
@@ -56,6 +149,7 @@ APP_MAP = {
     'telegram':      r'C:\Users\steveloo95\AppData\Roaming\Telegram Desktop\Telegram.exe',
     'vscode':        r'C:\Users\steveloo95\AppData\Local\Programs\Microsoft VS Code\Code.exe',
     'vs code':       r'C:\Users\steveloo95\AppData\Local\Programs\Microsoft VS Code\Code.exe',
+    'my playlist': 'https://www.youtube.com/watch?v=-Q3h0KhWykI&list=PLvw1x9noKvHvJPjz8upXixfK8F80JQIqz',
 }
 
 STORE_APPS = {
@@ -63,7 +157,7 @@ STORE_APPS = {
     'microsoft store': 'ms-windows-store:',
     'settings':        'ms-settings:',
     'photos':          'ms-photos:',
-    'mail':            'outlookmail:',
+    'email':           'https://mail.google.com',
 }
 
 @app.route('/open-app', methods=['POST'])
@@ -71,15 +165,27 @@ def open_app():
     try:
         data = request.json
         app_name = data.get('app', '').lower().strip()
+
+        # Store apps
         if app_name in STORE_APPS:
             os.startfile(STORE_APPS[app_name])
             return jsonify({"success": True, "opened": app_name})
+
         path = APP_MAP.get(app_name)
         if not path:
             return jsonify({"error": f"Unknown app: {app_name}"})
+
+        # Handle URLs
+        if path.startswith('http://') or path.startswith('https://'):
+            chrome = r'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe'
+            subprocess.Popen([chrome, path])
+            return jsonify({"success": True, "opened": app_name})
+
+        # Regular exe
         system_apps = ['notepad.exe', 'calc.exe', 'explorer.exe', 'taskmgr.exe']
         if path not in system_apps and not os.path.exists(path):
             return jsonify({"error": f"App not found at: {path}"})
+
         subprocess.Popen([path], shell=True)
         return jsonify({"success": True, "opened": app_name})
     except Exception as e:
@@ -190,63 +296,6 @@ def get_commitment():
 
     except Exception as e:
         return jsonify({"error": str(e)})
-
-
-# ============================================================
-# GET RETIREMENT HOLDINGS — from Google Sheets
-# ============================================================
-@app.route('/get-retirement')
-def get_retirement():
-    try:
-        url = f'https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/pub?output=csv&single=true&gid={RETIREMENT_GID}'
-        df  = pd.read_csv(url, header=None)
-
-        def clean(val):
-            if pd.isna(val): return None
-            s = str(val).strip().replace('RM','').replace('$','').replace('₱','').replace(',','').replace('%','').strip()
-            try: return float(s)
-            except: return None
-
-        def clean_str(val):
-            if pd.isna(val): return ''
-            return str(val).strip()
-
-        div_row = df.iloc[18] if len(df) > 18 else None
-        div_map = {}
-        if div_row is not None:
-            for i, label in enumerate(['JEPQ','5176','1155','5258']):
-                div_map[label] = clean(div_row.iloc[i]) or 0.0
-
-        def parse_ticker_rows(row_indices):
-            result = []
-            for i in row_indices:
-                if i >= len(df): continue
-                row    = df.iloc[i]
-                ticker = clean_str(row.iloc[0])
-                if not ticker or ticker.lower() in ('ticker','total','nan',''): continue
-                units    = clean(row.iloc[1])
-                cost_val = clean(row.iloc[4])
-                pl_abs   = clean(row.iloc[5])
-                pl_pct   = clean(row.iloc[6])
-                avg_buy  = round(cost_val / units, 4) if cost_val and units else None
-                result.append({
-                    'ticker':      ticker,
-                    'units':       units,
-                    'avg_buy':     avg_buy,
-                    'pl_abs':      pl_abs,
-                    'pl_pct':      pl_pct,
-                    'dv_received': div_map.get(ticker, None),
-                })
-            return result
-
-        return jsonify({
-            'div':    parse_ticker_rows([3,4,5,6]),
-            'growth': parse_ticker_rows([10,11,12,13])
-        })
-
-    except Exception as e:
-        return jsonify({'error': str(e)})
-
 
 # ============================================================
 # WHATSAPP
