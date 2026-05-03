@@ -427,10 +427,11 @@ const LABEL_TO_SHEET_TICKER = {'MAYBANK':'1155','SUNREIT':'5176','BIMB':'5258'};
 
 async function loadHoldings() {
   try{
-    const res  = await fetch('http://localhost:5000/get-retirement');
+    const res  = await fetch('http://localhost:5000/get-portfolio');
     const data = await res.json();
     if(data.error){console.warn('[HOLDINGS]',data.error);return;}
-    [...(data.div||[]),...(data.growth||[])].forEach(h=>{holdingsCache[h.ticker]=h;});
+    holdingsCache={};
+    data.holdings.forEach(h=>{holdingsCache[h.ticker]=h;});
   }catch(e){console.warn('[HOLDINGS] Bridge offline.');}
 }
 
@@ -456,12 +457,41 @@ async function renderStocks() {
     const isJEPQ   = label==='JEPQ';
     const sym      = isMYR?'RM':'$';
     const fmtPrice = p=>p!=null?sym+p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';
-    const avgBuyV  = (isJEPQ&&h.avg_buy!=null)?h.avg_buy*fxRates.USD:h.avg_buy;
-    const fmtAvg   = avgBuyV!=null?sym+avgBuyV.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';
-    const dvV      = isJEPQ&&h.dv_received!=null?h.dv_received*fxRates.USD:h.dv_received;
-    const fmtDV    = dvV!=null&&dvV>0?sym+dvV.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';
-    const plPct    = h.pl_pct!=null?((h.pl_pct>=0?'+':'')+h.pl_pct.toFixed(2)+'%'):'--';
-    const plColor  = h.pl_pct!=null?(h.pl_pct>=0?'var(--c3)':'var(--c2)'):'rgba(255,255,255,0.3)';
+
+    // Calculate P/L from Supabase data + live price
+    let plPct='--', plColor='rgba(255,255,255,0.3)', fmtDV='--', fmtAvg='--';
+
+    if(h.units && h.units>0){
+      const avgCost   = h.avg_cost||0;
+      const displayAvg= isJEPQ ? avgCost*(1/fxRates.USD) : avgCost;
+      fmtAvg = displayAvg>0 ? sym+displayAvg.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '--';
+
+      if(data){
+        const livePrice  = data.price;
+        const costBasis  = h.cost_basis||0;
+        const units      = h.units||0;
+        const realised   = h.realised||0;
+        const divs       = h.dividends||0;
+        const isDiv      = h.type==='dividend';
+
+        // Unrealised P/L = (livePrice × units) - costBasis
+        const unrealised = (livePrice * units) - costBasis;
+
+        // Total P/L
+        const totalPL    = isDiv
+          ? unrealised + realised + divs
+          : unrealised + realised;
+
+        const plPctVal   = costBasis>0?(totalPL/costBasis)*100:0;
+        plPct            = (plPctVal>=0?'+':'')+plPctVal.toFixed(2)+'%';
+        plColor          = plPctVal>=0?'var(--c3)':'var(--c2)';
+      }
+
+      // Dividends received
+      const dvRaw  = h.dividends||0;
+      const dvDisp = isJEPQ ? dvRaw*(1/fxRates.USD) : dvRaw;
+      fmtDV = dvDisp>0 ? sym+dvDisp.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '--';
+    }
 
     if(data){
       stockCache[label]=data;
@@ -627,18 +657,40 @@ async function sendCmd(){
   document.getElementById('user-input').value='';
   const q=query.toLowerCase();
 
+  // Mic controls
   if(q.includes('turn off mic')||q.includes('mic off')||q.includes('stop listening')){
     stopVoice(); log('log-jarvis','[JARVIS] Mic deactivated, Sir.'); speak("Mic deactivated, Sir."); return;
   }
-  if(q.includes('turn on mic')||q.includes('mic on')||q.includes('start listening')){ startVoice(); return; }
+  if(q.includes('turn on mic')||q.includes('mic on')||q.includes('start listening')){
+    startVoice(); return;
+  }
 
+  // Timer
   const timerMins=parseTimerCommand(q);
-  if(timerMins&&timerMins>0&&timerMins<=240){ setTimer(timerMins,`${timerMins} minute timer`); speak(`Timer set for ${timerMins} minutes, Sir.`); return; }
-  if(q.includes('cancel alarm')||q.includes('stop alarm')||q.includes('clear alarm')){ cancelAlarms(); return; }
+  if(timerMins&&timerMins>0&&timerMins<=240){
+    setTimer(timerMins,`${timerMins} minute timer`);
+    speak(`Timer set for ${timerMins} minutes, Sir.`);
+    return;
+  }
+
+  // Alarm cancel
+  if(q.includes('cancel alarm')||q.includes('stop alarm')||q.includes('clear alarm')){
+    cancelAlarms(); return;
+  }
+
+  // Alarm set
   const alarm=parseAlarmCommand(q);
-  if(alarm){ const t=setAlarm(alarm.hour,alarm.min,''); speak(`Alarm set for ${t}, Sir.`); return; }
+  if(alarm){
+    const t=setAlarm(alarm.hour,alarm.min,'');
+    speak(`Alarm set for ${t}, Sir.`);
+    return;
+  }
+
+  // App launcher
   const appName=parseAppCommand(query);
   if(appName){ openApp(appName); return; }
+
+  // WhatsApp
   const waCmd=parseWhatsAppCommand(query);
   if(waCmd){ sendWhatsApp(waCmd.phone,waCmd.message,waCmd.contact); return; }
 
@@ -743,71 +795,125 @@ async function askJarvis(query){
   log('log-user',`> ${query}`);
   log('log-sys','[JARVIS] Processing...');
 
-  const recentCtx=jarvisHistory.slice(-6).map(m=>({
-    role: m.role,
-    content: m.content
-  }));
+  const recentCtx=jarvisHistory.slice(-6).map(m=>({role:m.role,content:m.content}));
+
+  // Keywords that can be answered from dashboard data — use Groq (free)
+  // External/news questions always go to Claude
+  const externalKeywords=[
+    'earning','report','news','announce','release','next week','this week',
+    'forecast','prediction','analyst','rating','upgrade','downgrade',
+    'ipo','merger','acquisition','lawsuit','regulation','fed','interest rate',
+    'inflation','gdp','election','policy','crisis','war','sanction',
+    'what is','who is','when is','where is','why is','how to','explain','tell me about'
+  ];
+  const isExternal=externalKeywords.some(w=>query.toLowerCase().includes(w));
+
+  // Dashboard data questions go to Groq (free)
+  const dashboardKeywords=[
+    'timer','alarm','minute','second','remind',
+    'temperature','weather','humidity','wind','feels',
+    'payment','commit','saving','progress','readiness','secured',
+    'my stock','my portfolio','my profit','my loss','my holdings','my average','my dividend',
+    'jepq','maybank','sunreit','bimb','open','email',
+    'sp500','s&p','nasdaq','fear','greed',
+    'how much','how many','total','this month','next month','today','due'
+  ];
+  const isDashboard=!isExternal&&dashboardKeywords.some(w=>query.toLowerCase().includes(w));
 
   const systemPrompt=`You are JARVIS, an elite AI assistant for a personal mission control dashboard.
 Be concise, analytical, slightly formal. Address user as "Sir". Under 100 words. Plain text only. Answer directly.
-Use web search only for current news, public events, or general knowledge questions.
-CRITICAL: For weather — use DASHBOARD CONTEXT data only, never web search.
-CRITICAL: For avg buy, P/L%, dividends, holdings — use MY HOLDINGS from DASHBOARD CONTEXT only.
-CRITICAL: For live stock prices — use LIVE PRICES from DASHBOARD CONTEXT only.
+CRITICAL: For weather — use DASHBOARD CONTEXT data only.
+CRITICAL: For avg buy, P/L%, dividends, holdings — use MY HOLDINGS from DASHBOARD CONTEXT only. Always state P/L% explicitly.
 CRITICAL: For payments, commitments, savings — use DASHBOARD CONTEXT only.
+CRITICAL: For live stock prices — use LIVE PRICES from DASHBOARD CONTEXT only.`;
 
-${buildContext()}`;
+  const context=buildContext();
 
-  const messages=[
-    ...recentCtx,
-    {role:'user', content: query}
-  ];
+  if(isDashboard){
+    // ── GROQ (free) — dashboard questions ─────────────────────────────────
+    const messages=[
+      {role:'system',content:`${systemPrompt}\n\n${context}`},
+      ...jarvisHistory.slice(-6),
+      {role:'user',content:query}
+    ];
 
-  const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),20000);
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),15000);
+    try{
+      let res;
+      for(let attempt=0;attempt<3;attempt++){
+        res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+          method:'POST',
+          headers:{'Authorization':`Bearer ${GROQ_KEY}`,'Content-Type':'application/json'},
+          signal:controller.signal,
+          body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:150,temperature:0.3,messages})
+        });
+        if(res.status!==429) break;
+        log('log-sys',`[AI] Rate limited, retrying in ${(attempt+1)*3}s...`);
+        await new Promise(r=>setTimeout(r,(attempt+1)*3000));
+      }
+      const data=await res.json();
+      const logEl=document.getElementById('ai-log');
+      const last=logEl.lastElementChild;
+      if(last&&last.textContent.includes('Processing')) logEl.removeChild(last);
+      if(!res.ok) throw new Error(data?.error?.message||`Groq HTTP ${res.status}`);
+      const reply=(data.choices?.[0]?.message?.content||'').trim();
+      if(!reply){
+        log('log-jarvis','[JARVIS] Apologies Sir, I did not catch that. Could you rephrase?');
+        speak('Apologies Sir, could you rephrase that?');
+        return;
+      }
+      log('log-jarvis',`[JARVIS] ${reply}`);
+      speak(reply);
+      jarvisHistory.push({role:'user',content:query});
+      jarvisHistory.push({role:'assistant',content:reply});
+      if(jarvisHistory.length>20) jarvisHistory=jarvisHistory.slice(-20);
+    }catch(e){
+      const logEl=document.getElementById('ai-log');
+      const last=logEl.lastElementChild;
+      if(last&&last.textContent.includes('Processing')) logEl.removeChild(last);
+      log('log-err',`[AI] ${e.name==='AbortError'?'Timeout':e.message}`);
+    }finally{clearTimeout(timeout);}
 
-  try{
-    const res=await fetch('http://localhost:5000/jarvis-query',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      signal:controller.signal,
-      body:JSON.stringify({system:systemPrompt, messages})
-    });
-
-    const data=await res.json();
-
-    const logEl=document.getElementById('ai-log');
-    const last=logEl.lastElementChild;
-    if(last&&last.textContent.includes('Processing')) logEl.removeChild(last);
-
-    if(data.error){
-      log('log-err',`[AI] ${data.error}`);
-      return;
-    }
-
-    const reply=(data.reply||'').trim();
-    if(!reply){
-      log('log-jarvis','[JARVIS] Apologies Sir, I did not catch that. Could you rephrase?');
-      speak('Apologies Sir, could you rephrase that?');
-      return;
-    }
-
-    log('log-jarvis',`[JARVIS] ${reply}`);
-    speak(reply);
-    jarvisHistory.push({role:'user',content:query});
-    jarvisHistory.push({role:'assistant',content:reply});
-    if(jarvisHistory.length>20) jarvisHistory=jarvisHistory.slice(-20);
-
-  }catch(e){
-    const logEl=document.getElementById('ai-log');
-    const last=logEl.lastElementChild;
-    if(last&&last.textContent.includes('Processing')) logEl.removeChild(last);
-    log('log-err',`[AI] ${e.name==='AbortError'?'Timeout':e.message}`);
-  }finally{
-    clearTimeout(timeout);
+  } else {
+    // ── CLAUDE API — general/web questions ────────────────────────────────
+    log('log-sys','[WEB] Searching with Claude...');
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),20000);
+    try{
+      const res=await fetch('http://localhost:5000/jarvis-query',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        signal:controller.signal,
+        body:JSON.stringify({
+          system:`${systemPrompt}\n\n${context}`,
+          messages:[...recentCtx,{role:'user',content:query}]
+        })
+      });
+      const data=await res.json();
+      const logEl=document.getElementById('ai-log');
+      const last=logEl.lastElementChild;
+      if(last&&last.textContent.includes('Processing')) logEl.removeChild(last);
+      if(data.error){log('log-err',`[AI] ${data.error}`);return;}
+      const reply=(data.reply||'').trim();
+      if(!reply){
+        log('log-jarvis','[JARVIS] Apologies Sir, I did not catch that. Could you rephrase?');
+        speak('Apologies Sir, could you rephrase that?');
+        return;
+      }
+      log('log-jarvis',`[JARVIS] ${reply}`);
+      speak(reply);
+      jarvisHistory.push({role:'user',content:query});
+      jarvisHistory.push({role:'assistant',content:reply});
+      if(jarvisHistory.length>20) jarvisHistory=jarvisHistory.slice(-20);
+    }catch(e){
+      const logEl=document.getElementById('ai-log');
+      const last=logEl.lastElementChild;
+      if(last&&last.textContent.includes('Processing')) logEl.removeChild(last);
+      log('log-err',`[AI] ${e.name==='AbortError'?'Timeout':e.message}`);
+    }finally{clearTimeout(timeout);}
   }
 }
-
 
 // ── VOICE ──────────────────────────────────────────────────────────────────
 function speak(text){
@@ -824,6 +930,8 @@ function speak(text){
 }
 
 function toggleVoice(){if(voiceActive)stopVoice();else startVoice();}
+
+let micGreetingDone = false;
 
 function startVoice(){
   const SpeechAPI=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -851,8 +959,13 @@ function startVoice(){
     const appName=parseAppCommand(cmd);
     if(appName){openApp(appName);return;}
     const waCmd=parseWhatsAppCommand(cmd);
-    if(waCmd){sendWhatsApp(waCmd.phone,waCmd.message,waCmd.contact);return;}
-    askJarvis(txt.includes('hey jarvis')||txt.includes('jarvis')?cmd:txt);
+        if(waCmd){sendWhatsApp(waCmd.phone,waCmd.message,waCmd.contact);return;}
+
+        // Double check app command before sending to AI
+        const appCheck=parseAppCommand(cmd);
+        if(appCheck){openApp(appCheck);return;}
+
+        askJarvis(txt.includes('hey jarvis')||txt.includes('jarvis')?cmd:txt);
   };
   recognition.onerror=(e)=>{
     if(e.error==='aborted') return;
@@ -866,6 +979,40 @@ function startVoice(){
     document.getElementById('voice-ring').classList.add('active');
     document.getElementById('mic-btn').textContent='🎙 LIVE';
     log('log-sys','[MIC] LIVE — Say "Hey Jarvis" + command.');
+
+    // Only greet once per mic session
+    if(!micGreetingDone){
+      micGreetingDone=true;
+
+      const now=new Date();
+      const hour=now.getHours();
+      const greeting=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
+
+      const todayKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+      const todayPay=(paymentTasks[todayKey]||[]).map(t=>t.replace('PAY:','').trim());
+      const yr=now.getFullYear(), mo=now.getMonth()+1;
+      const upcomingPay=[];
+      for(let d=now.getDate()+1;d<=31;d++){
+        const k=`${yr}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        if(paymentTasks[k]) paymentTasks[k].forEach(t=>upcomingPay.push({day:d,text:t.replace('PAY:','').trim()}));
+      }
+
+      let reminder=`${greeting}, Sir. JARVIS online. `;
+      if(todayPay.length>0){
+        reminder+=`You have ${todayPay.length} payment${todayPay.length>1?'s':''} due today: ${todayPay.join(', ')}.`;
+        if(upcomingPay.length>0) reminder+=` ${upcomingPay.length} more payment${upcomingPay.length>1?'s':''} remaining this month.`;
+      } else if(upcomingPay.length>0){
+        const next=upcomingPay[0];
+        reminder+=`No payments due today. Next payment is on day ${next.day}: ${next.text}. ${upcomingPay.length} payment${upcomingPay.length>1?'s':''} remaining this month.`;
+      } else {
+        reminder+='No pending payments for the rest of this month.';
+      }
+      reminder+=' Awaiting your command.';
+
+      log('log-jarvis',`[JARVIS] ${reminder}`);
+      setTimeout(()=>speak(reminder),800);
+    }
+
   }catch(e){log('log-err','[MIC] Failed. Allow mic permission and click MIC.');}
 }
 
@@ -875,6 +1022,7 @@ function stopVoice(){
   document.getElementById('mic-btn').classList.remove('active');
   document.getElementById('voice-ring').classList.remove('active');
   document.getElementById('mic-btn').textContent='🎙 MIC';
+  micGreetingDone=false;
   log('log-sys','[MIC] Off. Click MIC to reactivate.');
 }
 
@@ -956,7 +1104,7 @@ function parseAlarmCommand(txt){
 function cancelAlarms(){activeAlarms.forEach(a=>clearTimeout(a.id));activeAlarms=[];log('log-sys','[ALARM] All alarms cancelled.');speak('All alarms cancelled, Sir.');}
 
 // ── APP LAUNCHER ───────────────────────────────────────────────────────────
-const APP_KEYWORDS=['chrome','excel','word','notepad','calculator','spotify','telegram','whatsapp','vscode','vs code','explorer','file explorer','task manager'];
+const APP_KEYWORDS=['chrome','my playlist','excel','word','notepad','calculator','spotify','telegram','whatsapp','vscode','vs code','explorer','file explorer','task manager','email'];
 function parseAppCommand(txt){
   const t=txt.toLowerCase();
   if(!t.includes('open')&&!t.includes('launch')&&!t.includes('start')) return null;
