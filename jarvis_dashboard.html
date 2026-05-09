@@ -4,190 +4,506 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JARVIS | MISSION CONTROL</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --c:#00e5ff;--c2:#ff6b35;--c3:#39ff14;--c4:#ffd700;
-  --bg:#020c12;--panel:rgba(0,20,35,0.85);
-  --border:rgba(0,229,255,0.25);
-  --glow:0 0 12px rgba(0,229,255,0.5);
-  --glow2:0 0 8px rgba(0,229,255,0.3);
+  --ink:#0a0a0f;
+  --ink2:#12121a;
+  --ink3:#1a1a26;
+  --surface:rgba(255,255,255,0.03);
+  --surface2:rgba(255,255,255,0.06);
+  --rim:rgba(255,255,255,0.08);
+  --rim2:rgba(255,255,255,0.14);
+  --acid:#b8ff57;
+  --acid2:#7fffb8;
+  --plasma:#ff4d6d;
+  --amber:#ffb703;
+  --frost:#a8d8ff;
+  --text:#f0f0f8;
+  --muted:rgba(240,240,248,0.38);
+  --muted2:rgba(240,240,248,0.18);
+  --glow-acid:0 0 20px rgba(184,255,87,0.3),0 0 60px rgba(184,255,87,0.1);
+  --glow-plasma:0 0 20px rgba(255,77,109,0.3);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-::-webkit-scrollbar{width:4px;background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.4);border-radius:2px}
-body{background:var(--bg);color:var(--c);font-family:'Exo 2',sans-serif;
-  height:100vh;overflow:hidden;display:flex;flex-direction:column;
+::-webkit-scrollbar{width:3px;background:transparent}
+::-webkit-scrollbar-thumb{background:var(--rim2);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--acid)}
+
+html,body{height:100vh;overflow:hidden}
+body{
+  background:var(--ink);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  font-size:13px;
+  display:flex;
+  flex-direction:column;
   background-image:
-    radial-gradient(ellipse 80% 40% at 50% -10%,rgba(0,100,150,0.15) 0%,transparent 60%),
-    linear-gradient(rgba(0,229,255,0.03) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(0,229,255,0.03) 1px,transparent 1px);
-  background-size:100% 100%,60px 60px,60px 60px;}
-body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);}
-header{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:12px 16px;height:215px;flex-shrink:0;border-bottom:1px solid var(--border);}
-.hud-panel{background:var(--panel);border:1px solid var(--border);padding:14px;position:relative;overflow:hidden;}
-.hud-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--c),transparent);animation:scan-h 3s ease-in-out infinite;}
-@keyframes scan-h{0%,100%{opacity:0.4}50%{opacity:1}}
-.corner{position:absolute;width:10px;height:10px;border-color:var(--c);border-style:solid;}
-.corner-tl{top:0;left:0;border-width:2px 0 0 2px}.corner-tr{top:0;right:0;border-width:2px 2px 0 0}
-.corner-bl{bottom:0;left:0;border-width:0 0 2px 2px}.corner-br{bottom:0;right:0;border-width:0 2px 2px 0}
-.hud-label{font-size:0.6rem;letter-spacing:3px;color:rgba(0,229,255,0.5);margin-bottom:3px;font-family:'Share Tech Mono'}
-#city-name{font-family:'Orbitron';font-size:1.05rem;font-weight:700;letter-spacing:2px}
-#weather-detail{font-size:0.75rem;color:rgba(0,229,255,0.7);margin:3px 0 8px}
-#big-clock{font-family:'Orbitron';font-size:3rem;font-weight:900;line-height:1;text-shadow:var(--glow);letter-spacing:2px}
-#big-date{font-size:0.7rem;letter-spacing:3px;margin-top:4px;color:rgba(0,229,255,0.7)}
-.weather-row{display:flex;gap:16px;margin-top:8px}
-.weather-stat{font-size:0.7rem;color:rgba(255,255,255,0.6)}
-.weather-stat span{color:var(--c);font-weight:600}
-.center-hud{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:var(--panel);border:1px solid var(--border);position:relative;overflow:hidden;}
-.center-hud::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,229,255,0.05) 0%,transparent 70%);}
-.jarvis-title{font-family:'Orbitron';font-size:2.8rem;font-weight:900;letter-spacing:14px;
-  text-shadow:0 0 30px var(--c),0 0 60px rgba(0,229,255,0.3);position:relative;z-index:1}
-.jarvis-sub{font-size:0.55rem;letter-spacing:8px;color:rgba(0,229,255,0.5);margin-top:2px;font-family:'Share Tech Mono'}
-.core-ring{width:60px;height:60px;border-radius:50%;border:1px solid rgba(0,229,255,0.3);
-  display:flex;align-items:center;justify-content:center;margin-top:8px;position:relative;animation:rotate 20s linear infinite;}
-.core-ring::before{content:'';position:absolute;inset:4px;border-radius:50%;
-  border:1px dashed rgba(0,229,255,0.4);animation:rotate 8s linear infinite reverse;}
-.core-dot{width:14px;height:14px;border-radius:50%;background:var(--c);box-shadow:0 0 20px var(--c);animation:pulse-dot 2s ease-in-out infinite}
-@keyframes rotate{to{transform:rotate(360deg)}}
-@keyframes pulse-dot{0%,100%{transform:scale(0.8);opacity:0.6}50%{transform:scale(1.2);opacity:1}}
-.ai-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.ai-status{display:flex;align-items:center;gap:6px;font-size:0.65rem;letter-spacing:2px;color:rgba(0,229,255,0.6)}
-.status-dot{width:6px;height:6px;border-radius:50%;background:var(--c3);box-shadow:0 0 8px var(--c3);animation:pulse-dot 1.5s ease-in-out infinite}
-.ai-log{height:95px;overflow-y:auto;font-family:'Share Tech Mono';font-size:0.7rem;
-  border-left:2px solid rgba(0,229,255,0.3);padding-left:10px;margin-bottom:8px;line-height:1.6;}
-.log-sys{color:rgba(0,229,255,0.5)}.log-user{color:#fff}.log-jarvis{color:var(--c3)}.log-err{color:var(--c2)}
-.ai-controls{display:flex;gap:5px}
-.ai-input{flex:1;background:rgba(0,0,0,0.4);border:1px solid rgba(0,229,255,0.3);color:#fff;
-  padding:7px 10px;font-family:'Share Tech Mono';font-size:0.75rem;outline:none;}
-.ai-input:focus{border-color:var(--c);box-shadow:0 0 8px rgba(0,229,255,0.2)}
-.btn{background:transparent;border:1px solid rgba(0,229,255,0.4);color:var(--c);cursor:pointer;
-  font-family:'Orbitron';font-size:0.6rem;padding:6px 10px;transition:all 0.2s;white-space:nowrap;letter-spacing:1px;}
-.btn:hover{background:var(--c);color:#000;box-shadow:var(--glow)}
-.btn.danger:hover{background:var(--c2);border-color:var(--c2)}
-.btn-mic{border-color:rgba(255,107,53,0.4);color:var(--c2)}
-.btn-mic.active{background:var(--c2);color:#000;border-color:var(--c2);animation:pulse-btn 1s ease-in-out infinite}
-@keyframes pulse-btn{0%,100%{box-shadow:0 0 8px rgba(255,107,53,0.5)}50%{box-shadow:0 0 20px rgba(255,107,53,0.8)}}
-main{display:grid;grid-template-columns:1.3fr 1fr 1.1fr;gap:12px;padding:0 16px 14px;flex:1;overflow:hidden;min-height:0;}
-.panel{background:var(--panel);border:1px solid var(--border);padding:14px;
-  overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;position:relative;
-  scrollbar-width:thin;scrollbar-color:rgba(0,229,255,0.3) transparent;}
-.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--c),transparent);opacity:0.5;}
-.panel-title{font-family:'Orbitron';font-size:0.75rem;font-weight:700;letter-spacing:3px;
-  border-left:3px solid var(--c);padding-left:10px;margin-bottom:12px;
-  display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
-.panel-badge{font-size:0.55rem;letter-spacing:2px;color:rgba(0,229,255,0.5);
-  background:rgba(0,229,255,0.08);border:1px solid var(--border);padding:2px 6px;}
-/* CALENDAR */
-.cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-shrink:0}
-.cal-nav-btn{background:transparent;border:1px solid var(--border);color:var(--c);cursor:pointer;padding:3px 8px;font-family:'Share Tech Mono'}
-.cal-nav-btn:hover{border-color:var(--c);background:rgba(0,229,255,0.1)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;
-  background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.15);flex-shrink:0;margin-bottom:10px;}
-.cal-head{background:rgba(0,0,0,0.5);font-size:0.6rem;text-align:center;padding:5px 2px;
-  font-family:'Orbitron';letter-spacing:1px;color:rgba(0,229,255,0.6)}
-.cal-cell{background:var(--bg);min-height:52px;padding:3px;font-size:0.65rem;
-  border:0.5px solid rgba(0,229,255,0.06);position:relative;}
-.cal-cell.today{background:rgba(0,229,255,0.07);outline:1px solid rgba(0,229,255,0.4)}
-.cal-cell.today .cal-day-num{color:var(--c);font-weight:700;text-shadow:var(--glow2)}
-.cal-day-num{font-family:'Share Tech Mono';margin-bottom:2px}
-.cal-task-chip{border-left:2px solid var(--c);font-size:0.55rem;
-  padding:1px 3px;margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-.cal-task-chip.pay-chip{background:rgba(255,107,53,0.15);border-left:2px solid var(--c2);color:rgba(255,180,150,0.9);}
-/* UPCOMING */
-.yr-strip-title{font-family:'Orbitron';font-size:0.65rem;letter-spacing:2px;color:rgba(0,229,255,0.5);margin-bottom:6px;flex-shrink:0}
-.yr-month{display:grid;grid-template-columns:55px 1fr;gap:8px;align-items:start;
-  border-bottom:1px solid rgba(0,229,255,0.06);padding:6px 0;}
-.yr-mo-label{font-family:'Orbitron';font-size:0.65rem;color:var(--c)}
-.yr-mo-count{font-family:'Share Tech Mono';font-size:0.55rem;color:rgba(0,229,255,0.4);margin-top:2px}
-.yr-task-list{color:rgba(255,255,255,0.6);font-size:0.65rem;line-height:1.6}
-.yr-task-item{display:flex;align-items:center;gap:4px}
-.yr-task-dot{width:3px;height:3px;border-radius:50%;background:var(--c2);flex-shrink:0}
-.yr-no-task{color:rgba(0,229,255,0.2);font-style:italic}
-/* COMMITMENTS */
-.prog-bar-wrap{position:relative;height:6px;background:rgba(0,0,0,0.5);border:1px solid rgba(0,229,255,0.15);overflow:hidden}
-.prog-bar-fill{height:100%;transition:width 0.8s cubic-bezier(0.4,0,0.2,1);position:relative}
-.prog-bar-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:4px;
-  background:rgba(255,255,255,0.6);box-shadow:0 0 6px rgba(255,255,255,0.8)}
-.prog-bar-fill.done{background:linear-gradient(90deg,rgba(57,255,20,0.3),var(--c3))}
-.prog-bar-fill.on-track{background:linear-gradient(90deg,rgba(0,150,200,0.3),var(--c))}
-.prog-bar-fill.behind{background:linear-gradient(90deg,rgba(255,107,53,0.3),var(--c2))}
-/* FINANCIAL */
-.fin-section{margin-bottom:10px;flex-shrink:0}
-.fin-section-label{font-size:0.6rem;letter-spacing:3px;color:rgba(0,229,255,0.4);
-  border-bottom:1px solid rgba(0,229,255,0.1);padding-bottom:4px;margin-bottom:7px;font-family:'Share Tech Mono'}
-.index-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
-.index-card{background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.1);padding:9px;text-align:center}
-.index-name{font-family:'Orbitron';font-size:0.55rem;letter-spacing:2px;color:rgba(0,229,255,0.5);margin-bottom:3px}
-.index-val{font-family:'Share Tech Mono';font-size:1.05rem}
-.index-chg{font-size:0.65rem;margin-top:2px}
-.fg-bar{height:8px;background:linear-gradient(90deg,#e74c3c,#e67e22,#f1c40f,#2ecc71,#27ae60);
-  border-radius:4px;margin:6px 0;position:relative}
-.fg-needle{position:absolute;top:-4px;width:3px;height:16px;background:#fff;
-  border-radius:2px;transform:translateX(-50%);box-shadow:0 0 6px #fff;transition:left 0.8s}
-.fg-labels{display:flex;justify-content:space-between;font-size:0.5rem;color:rgba(255,255,255,0.4)}
-.up{color:var(--c3)}.dn{color:var(--c2)}
-.stock-row{display:grid;grid-template-columns:90px 1fr 1fr 1fr 1fr;
-  align-items:center;gap:4px;padding:8px 6px;border-bottom:1px solid rgba(0,229,255,0.06);transition:background 0.2s;}
-.stock-row:hover{background:rgba(0,229,255,0.04)}
-.stock-row:last-child{border-bottom:none}
-.stock-row-ticker{font-family:'Orbitron';font-size:0.65rem;color:var(--c);font-weight:700}
-.stock-row-name{font-size:0.58rem;color:rgba(255,255,255,0.35);font-family:'Share Tech Mono';margin-top:1px}
-.voice-ring{position:fixed;bottom:20px;right:20px;width:46px;height:46px;border-radius:50%;
-  border:2px solid rgba(255,107,53,0.3);display:flex;align-items:center;justify-content:center;
-  font-size:1.1rem;cursor:pointer;background:rgba(0,0,0,0.5);transition:all 0.3s;z-index:100;}
-.voice-ring.active{border-color:var(--c2);box-shadow:0 0 20px rgba(255,107,53,0.5);animation:voice-pulse 1s ease-in-out infinite}
-@keyframes voice-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-.shimmer{background:linear-gradient(90deg,rgba(0,229,255,0.05) 0%,rgba(0,229,255,0.15) 50%,rgba(0,229,255,0.05) 100%);
-  background-size:200% 100%;animation:shimmer 2s infinite}
+    radial-gradient(ellipse 60% 50% at 20% 0%,rgba(184,255,87,0.04) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 60% at 80% 100%,rgba(255,77,109,0.04) 0%,transparent 60%),
+    radial-gradient(ellipse 30% 30% at 50% 50%,rgba(168,216,255,0.02) 0%,transparent 70%);
+}
+
+/* Noise grain overlay */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  opacity:0.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size:128px 128px;
+}
+
+/* ── HEADER ── */
+header{
+  display:grid;
+  grid-template-columns:1.25fr 1fr 1.1fr;
+  gap:1px;
+  height:200px;
+  flex-shrink:0;
+  border-bottom:1px solid var(--rim);
+  background:var(--rim);
+  position:relative;
+  z-index:1;
+}
+
+.hdr-cell{
+  background:var(--ink);
+  padding:20px 24px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  position:relative;
+  overflow:hidden;
+}
+
+/* Brand panel */
+.brand-panel{
+  background:var(--ink2);
+  justify-content:center;
+  gap:8px;
+  border-right:1px solid var(--rim);
+}
+.brand-panel::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,var(--acid),transparent);
+}
+.brand-name{
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size:2.8rem;
+  letter-spacing:-1px;
+  line-height:1;
+  color:var(--text);
+}
+.brand-name span{color:var(--acid);}
+.brand-sub{
+  font-family:'Space Mono',monospace;
+  font-size:0.5rem;
+  letter-spacing:3px;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+.brand-ring{
+  display:flex;align-items:center;gap:10px;margin-top:4px;
+}
+.pulse-orb{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--acid);
+  box-shadow:var(--glow-acid);
+  animation:orb-pulse 2s ease-in-out infinite;
+}
+@keyframes orb-pulse{
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:0.5;transform:scale(0.7);}
+}
+.system-tag{
+  font-family:'Space Mono',monospace;font-size:0.55rem;
+  color:var(--acid);letter-spacing:2px;
+}
+
+/* Weather panel */
+.weather-panel{padding:20px 28px;}
+.weather-panel::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--frost),transparent);
+  opacity:0.3;
+}
+.w-top{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start;}
+.w-city{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;color:var(--text);}
+.w-condition{font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--muted);margin-top:2px;letter-spacing:1px;}
+.w-clock{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;line-height:1;letter-spacing:-0.5px;color:var(--text);}
+.w-date{font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--muted);letter-spacing:2px;margin-top:4px;}
+.w-stats{display:flex;gap:20px;margin-top:12px;}
+.w-stat{display:flex;flex-direction:column;gap:2px;}
+.w-stat-label{font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--muted2);letter-spacing:2px;}
+.w-stat-val{font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:600;color:var(--frost);}
+.w-fx{font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--rim);}
+
+/* AI panel */
+.ai-panel{background:var(--ink2);border-left:1px solid var(--rim);}
+.ai-panel::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--plasma),transparent);
+  opacity:0.5;
+}
+.ai-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.ai-label{font-family:'Space Mono',monospace;font-size:0.55rem;letter-spacing:3px;color:var(--muted);}
+.ai-online{display:flex;align-items:center;gap:5px;font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--acid);}
+.ai-online-dot{width:5px;height:5px;border-radius:50%;background:var(--acid);box-shadow:var(--glow-acid);animation:orb-pulse 1.5s infinite;}
+.ai-log{
+  height:88px;overflow-y:auto;
+  font-family:'Space Mono',monospace;font-size:0.62rem;
+  line-height:1.7;
+  padding:8px 10px;
+  background:rgba(0,0,0,0.3);
+  border:1px solid var(--rim);
+  margin-bottom:8px;
+}
+.log-sys{color:var(--muted);}
+.log-user{color:var(--text);}
+.log-jarvis{color:var(--acid);}
+.log-err{color:var(--plasma);}
+.ai-controls{display:flex;gap:6px;}
+.ai-input{
+  flex:1;background:rgba(0,0,0,0.4);
+  border:1px solid var(--rim2);
+  color:var(--text);
+  padding:8px 12px;
+  font-family:'Space Mono',monospace;font-size:0.68rem;
+  outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.ai-input:focus{border-color:var(--acid);box-shadow:0 0 0 1px rgba(184,255,87,0.2);}
+.ai-input::placeholder{color:var(--muted2);}
+.btn{
+  background:transparent;
+  border:1px solid var(--rim2);
+  color:var(--muted);
+  cursor:pointer;
+  font-family:'Space Mono',monospace;font-size:0.55rem;
+  padding:8px 12px;
+  letter-spacing:1px;
+  transition:all 0.2s;
+  white-space:nowrap;
+  position:relative;
+  overflow:hidden;
+}
+.btn::after{content:'';position:absolute;inset:0;background:currentColor;opacity:0;transition:opacity 0.2s;}
+.btn:hover{color:var(--text);border-color:var(--rim2);}
+.btn:hover::after{opacity:0.08;}
+.btn-mic{border-color:rgba(255,77,109,0.3);color:var(--plasma);}
+.btn-mic.active{
+  background:var(--plasma);color:#000;border-color:var(--plasma);
+  animation:mic-pulse 1s ease-in-out infinite;
+}
+@keyframes mic-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,77,109,0.4);}
+  50%{box-shadow:0 0 0 6px rgba(255,77,109,0);}
+}
+.btn-clr{color:var(--muted);}
+
+/* ── MAIN GRID ── */
+main{
+  display:grid;
+  grid-template-columns:1.25fr 1fr 1.1fr;
+  gap:1px;
+  padding:0;
+  flex:1;
+  overflow:hidden;
+  min-height:0;
+  background:var(--rim);
+  position:relative;
+  z-index:1;
+}
+.panel{
+  background:var(--ink);
+  padding:18px 20px;
+  overflow-y:auto;overflow-x:hidden;
+  display:flex;flex-direction:column;
+  position:relative;
+}
+.panel:nth-child(2){background:var(--ink2);}
+
+.panel-hdr{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:14px;flex-shrink:0;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--rim);
+}
+.panel-title{
+  font-family:'Syne',sans-serif;
+  font-size:0.72rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--text);
+}
+.panel-badge{
+  font-family:'Space Mono',monospace;
+  font-size:0.5rem;letter-spacing:1px;
+  color:var(--muted);
+  background:var(--surface2);
+  border:1px solid var(--rim);
+  padding:3px 8px;
+}
+.panel-btn{
+  font-family:'Space Mono',monospace;font-size:0.5rem;
+  background:transparent;border:1px solid var(--rim2);
+  color:var(--muted);cursor:pointer;padding:3px 8px;
+  transition:all 0.2s;letter-spacing:1px;
+}
+.panel-btn:hover{border-color:var(--acid);color:var(--acid);}
+
+/* ── CALENDAR ── */
+.cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-shrink:0;}
+.cal-nav-btn{
+  background:transparent;border:1px solid var(--rim);
+  color:var(--muted);cursor:pointer;padding:4px 10px;
+  font-family:'Space Mono',monospace;font-size:0.6rem;
+  transition:all 0.2s;
+}
+.cal-nav-btn:hover{border-color:var(--acid);color:var(--acid);}
+#cal-month-label{font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;letter-spacing:1px;}
+.cal-grid{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  gap:1px;background:var(--rim);
+  border:1px solid var(--rim);
+  flex-shrink:0;margin-bottom:12px;
+}
+.cal-head{
+  background:var(--ink2);font-family:'Space Mono',monospace;
+  font-size:0.5rem;text-align:center;padding:5px 2px;
+  color:var(--muted);letter-spacing:1px;
+}
+.cal-cell{
+  background:var(--ink);min-height:48px;padding:4px;
+  font-size:0.6rem;position:relative;transition:background 0.15s;
+}
+.cal-cell:hover{background:var(--surface2);}
+.cal-cell.today{background:rgba(184,255,87,0.05);outline:1px solid rgba(184,255,87,0.25);}
+.cal-cell.today .cal-day-num{color:var(--acid);font-weight:700;}
+.cal-day-num{font-family:'Space Mono',monospace;margin-bottom:3px;color:var(--muted);}
+.cal-task-chip{
+  font-size:0.5rem;padding:1px 4px;margin-top:2px;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  border-radius:1px;
+}
+.pay-chip{
+  background:rgba(255,183,3,0.12);
+  color:rgba(255,183,3,0.9);
+  border-left:2px solid var(--amber);
+}
+
+/* Upcoming strip */
+.yr-strip-title{
+  font-family:'Space Mono',monospace;font-size:0.55rem;
+  letter-spacing:2px;color:var(--muted);
+  margin-bottom:8px;flex-shrink:0;
+}
+.yr-month{
+  display:grid;grid-template-columns:52px 1fr;gap:10px;
+  align-items:start;padding:8px 0;
+  border-bottom:1px solid var(--rim);
+}
+.yr-mo-label{font-family:'Syne',sans-serif;font-size:0.65rem;font-weight:700;color:var(--acid2);}
+.yr-mo-count{font-family:'Space Mono',monospace;font-size:0.48rem;color:var(--muted2);margin-top:2px;}
+.yr-task-list{font-size:0.6rem;line-height:1.8;color:var(--muted);}
+.yr-task-item{display:flex;align-items:center;gap:6px;}
+.yr-task-dot{width:3px;height:3px;border-radius:50%;background:var(--amber);flex-shrink:0;}
+.yr-no-task{color:var(--muted2);font-style:italic;font-size:0.55rem;}
+
+/* ── COMMITMENTS ── */
+.prog-wrap{
+  background:rgba(0,0,0,0.3);border:1px solid var(--rim);
+  padding:14px 16px;margin-bottom:12px;flex-shrink:0;
+  position:relative;overflow:hidden;
+}
+.prog-wrap::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,var(--acid),transparent);opacity:0.4;
+}
+.prog-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+.prog-label{font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;color:var(--muted);}
+#comm-pct-label{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;}
+.prog-track{height:3px;background:var(--rim);position:relative;overflow:hidden;margin-bottom:8px;}
+.prog-fill{height:100%;transition:width 1s cubic-bezier(0.4,0,0.2,1);position:relative;}
+.prog-fill.done{background:linear-gradient(90deg,var(--acid2),var(--acid));}
+.prog-fill.on-track{background:linear-gradient(90deg,var(--frost),var(--acid));}
+.prog-fill.behind{background:linear-gradient(90deg,var(--amber),var(--plasma));}
+.prog-fill::after{
+  content:'';position:absolute;right:0;top:-2px;bottom:-2px;
+  width:2px;background:#fff;box-shadow:0 0 6px #fff;
+}
+.prog-totals{
+  display:flex;justify-content:space-between;
+  font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--muted);
+}
+.prog-totals span{color:var(--text);}
+#fx-rates{font-family:'Space Mono',monospace;font-size:0.5rem;color:var(--muted2);margin-top:6px;text-align:right;}
+
+.comm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-height:0;overflow-y:auto;}
+.comm-col-title{
+  font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;
+  color:var(--muted);padding-bottom:6px;
+  border-bottom:1px solid var(--rim);margin-bottom:6px;
+}
+.comm-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03);
+  min-height:22px;
+}
+.comm-row-label{font-size:0.6rem;color:rgba(240,240,248,0.6);line-height:1.4;}
+.comm-row-amount{font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--text);white-space:nowrap;}
+.comm-row.is-total .comm-row-label{color:var(--plasma);font-weight:600;font-size:0.62rem;}
+.comm-row.is-total .comm-row-amount{color:var(--plasma);}
+.comm-row.is-right.is-total .comm-row-label{color:var(--acid);}
+.comm-row.is-right.is-total .comm-row-amount{color:var(--acid);}
+
+/* ── FINANCIAL ── */
+.fin-sec{margin-bottom:14px;flex-shrink:0;}
+.fin-sec-label{
+  font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:3px;
+  color:var(--muted);padding-bottom:6px;
+  border-bottom:1px solid var(--rim);margin-bottom:10px;
+}
+.idx-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.idx-card{
+  background:var(--surface);border:1px solid var(--rim);
+  padding:10px 12px;position:relative;overflow:hidden;
+}
+.idx-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:var(--acid);opacity:0.2;}
+.idx-name{font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;color:var(--muted);margin-bottom:4px;}
+.idx-val{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;}
+.idx-chg{font-family:'Space Mono',monospace;font-size:0.6rem;margin-top:2px;}
+
+.fg-wrap{background:var(--surface);border:1px solid var(--rim);padding:12px 14px;}
+.fg-toprow{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.fg-title{font-family:'Space Mono',monospace;font-size:0.5rem;letter-spacing:2px;color:var(--muted);}
+#fg-value{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;}
+.fg-track{
+  height:6px;border-radius:3px;margin:0 0 6px;position:relative;
+  background:linear-gradient(90deg,#e74c3c,#e67e22,#f1c40f,#2ecc71,#27ae60);
+}
+.fg-needle{
+  position:absolute;top:-4px;width:2px;height:14px;
+  background:#fff;border-radius:1px;transform:translateX(-50%);
+  box-shadow:0 0 8px rgba(255,255,255,0.8);transition:left 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+.fg-labels{display:flex;justify-content:space-between;font-family:'Space Mono',monospace;font-size:0.45rem;color:var(--muted2);}
+#fg-label{font-family:'Space Mono',monospace;font-size:0.6rem;text-align:center;margin-top:5px;letter-spacing:1px;}
+
+/* Holdings table */
+.holdings-hdr{
+  display:grid;grid-template-columns:82px 1fr 1fr 1fr 1fr;
+  gap:4px;padding:4px 8px 6px;
+  border-bottom:1px solid var(--rim);margin-bottom:0;
+}
+.holdings-hdr div{font-family:'Space Mono',monospace;font-size:0.47rem;letter-spacing:1px;color:var(--muted2);text-align:right;}
+.holdings-hdr div:first-child{text-align:left;}
+
+.stock-row{
+  display:grid;grid-template-columns:82px 1fr 1fr 1fr 1fr;
+  align-items:center;gap:4px;padding:9px 8px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  transition:background 0.15s;
+}
+.stock-row:hover{background:var(--surface);}
+.stock-row:last-child{border-bottom:none;}
+.stock-ticker{font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;color:var(--text);}
+.stock-name{font-family:'Space Mono',monospace;font-size:0.48rem;color:var(--muted2);margin-top:1px;}
+.up{color:#4ade80;}.dn{color:var(--plasma);}
+
+/* Voice ring */
+.voice-ring{
+  position:fixed;bottom:22px;right:22px;
+  width:44px;height:44px;border-radius:50%;
+  border:1px solid rgba(255,77,109,0.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;cursor:pointer;
+  background:rgba(10,10,15,0.8);
+  backdrop-filter:blur(10px);
+  transition:all 0.3s;z-index:100;
+}
+.voice-ring.active{
+  border-color:var(--plasma);
+  box-shadow:0 0 0 0 rgba(255,77,109,0.4);
+  animation:voice-ring-pulse 1.2s ease-in-out infinite;
+}
+@keyframes voice-ring-pulse{
+  0%{box-shadow:0 0 0 0 rgba(255,77,109,0.5);}
+  70%{box-shadow:0 0 0 14px rgba(255,77,109,0);}
+  100%{box-shadow:0 0 0 0 rgba(255,77,109,0);}
+}
+
+/* Shimmer skeleton */
+.shimmer{
+  background:linear-gradient(90deg,var(--rim) 0%,var(--rim2) 50%,var(--rim) 100%);
+  background-size:200% 100%;
+  animation:shimmer 1.5s ease-in-out infinite;
+  border-radius:2px;
+}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Scrollable areas */
+#yr-strip{flex:1;overflow-y:auto;}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="center-hud" style="align-items:flex-start;padding:14px;">
-    <div class="jarvis-title" style="font-size:2.2rem;letter-spacing:10px">JARVIS</div>
-    <div class="jarvis-sub" style="margin-top:4px">JUST A RATHER VERY INTELLIGENT SYSTEM</div>
-    <div class="core-ring" style="margin-top:10px"><div class="core-dot"></div></div>
-  </div>
-
-  <div class="hud-panel">
-    <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
-    <div class="corner corner-bl"></div><div class="corner corner-br"></div>
-    <div class="hud-label">LOCATION · ENVIRONMENT</div>
-    <div id="city-name">ACQUIRING SIGNAL...</div>
-    <div id="weather-detail">CONNECTING...</div>
-    <div id="big-clock">00:00:00</div>
-    <div id="big-date">SYSTEM INITIALIZING</div>
-    <div class="weather-row">
-      <div class="weather-stat">FEELS <span id="feels-like">--°C</span></div>
-      <div class="weather-stat">HUM <span id="humidity">--%</span></div>
-      <div class="weather-stat">WIND <span id="wind">-- km/h</span></div>
+  <!-- Brand -->
+  <div class="hdr-cell brand-panel">
+    <div>
+      <div class="brand-name">JAR<span>V</span>IS</div>
+      <div class="brand-sub">Just A Rather Very Intelligent System</div>
     </div>
-    <div id="usd-myr-rate" style="font-family:'Share Tech Mono';font-size:0.6rem;color:rgba(0,229,255,0.5);margin-top:6px;border-top:1px solid rgba(0,229,255,0.1);padding-top:5px;">USD/MYR: LOADING...</div>
+    <div class="brand-ring">
+      <div class="pulse-orb"></div>
+      <div class="system-tag">SYS ONLINE</div>
+    </div>
   </div>
 
-  <div class="hud-panel">
-    <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
-    <div class="corner corner-bl"></div><div class="corner corner-br"></div>
-    <div class="ai-header">
-      <div class="hud-label">AI COMMAND INTERFACE</div>
-      <div class="ai-status"><div class="status-dot"></div>ONLINE</div>
+  <!-- Weather / Clock -->
+  <div class="hdr-cell weather-panel">
+    <div class="w-top">
+      <div>
+        <div class="w-city" id="city-name">ACQUIRING SIGNAL</div>
+        <div class="w-condition" id="weather-detail">CONNECTING...</div>
+      </div>
+      <div style="text-align:right">
+        <div class="w-clock" id="big-clock">00:00:00</div>
+        <div class="w-date" id="big-date">INITIALIZING</div>
+      </div>
+    </div>
+    <div class="w-stats">
+      <div class="w-stat">
+        <div class="w-stat-label">FEELS LIKE</div>
+        <div class="w-stat-val" id="feels-like">--°C</div>
+      </div>
+      <div class="w-stat">
+        <div class="w-stat-label">HUMIDITY</div>
+        <div class="w-stat-val" id="humidity">--%</div>
+      </div>
+      <div class="w-stat">
+        <div class="w-stat-label">WIND</div>
+        <div class="w-stat-val" id="wind">-- km/h</div>
+      </div>
+    </div>
+    <div class="w-fx" id="usd-myr-rate">USD/MYR: LOADING...</div>
+  </div>
+
+  <!-- AI Panel -->
+  <div class="hdr-cell ai-panel">
+    <div class="ai-topbar">
+      <div class="ai-label">AI COMMAND INTERFACE</div>
+      <div class="ai-online"><div class="ai-online-dot"></div>ONLINE</div>
     </div>
     <div class="ai-log" id="ai-log">
-      <div class="log-sys">[SYS] Neural link active. Wake word: "Hey Jarvis"</div>
+      <div class="log-sys">[SYS] Neural link active · Wake word: "Hey Jarvis"</div>
       <div class="log-sys">[SYS] Click anywhere to activate voice.</div>
     </div>
     <div class="ai-controls">
       <input class="ai-input" type="text" id="user-input" placeholder="Type command & press Enter..."
         onkeydown="if(event.key==='Enter')sendCmd()">
       <button class="btn btn-mic" id="mic-btn" onclick="toggleVoice()">🎙 MIC</button>
-      <button class="btn danger" onclick="clearLog()">CLR</button>
+      <button class="btn btn-clr" onclick="clearLog()">CLR</button>
     </div>
   </div>
 </header>
@@ -195,50 +511,50 @@ main{display:grid;grid-template-columns:1.3fr 1fr 1.1fr;gap:12px;padding:0 16px 
 <main>
   <!-- COL 1: PAYMENT SCHEDULE -->
   <section class="panel">
-    <div class="panel-title">
-      PAYMENT SCHEDULE
-      <div style="display:flex;gap:5px;align-items:center">
+    <div class="panel-hdr">
+      <div class="panel-title">Payment Schedule</div>
+      <div style="display:flex;gap:6px;align-items:center">
         <span class="panel-badge" id="pay-count">0 PAYMENTS</span>
-        <button class="btn" onclick="syncCommitment()" style="font-size:0.5rem;padding:3px 7px">SYNC</button>
+        <button class="panel-btn" onclick="syncCommitment()">SYNC</button>
       </div>
     </div>
     <div class="cal-nav">
       <button class="cal-nav-btn" onclick="shiftMonth(-1)">◀</button>
-      <span id="cal-month-label" style="font-family:'Orbitron';font-size:0.8rem;letter-spacing:2px"></span>
+      <span id="cal-month-label"></span>
       <button class="cal-nav-btn" onclick="shiftMonth(1)">▶</button>
     </div>
     <div class="cal-grid" id="cal-grid"></div>
-    <div class="yr-strip-title">▸ UPCOMING PAYMENTS</div>
-    <div id="yr-strip" style="flex:1;overflow-y:auto"></div>
+    <div class="yr-strip-title">UPCOMING PAYMENTS</div>
+    <div id="yr-strip"></div>
   </section>
 
   <!-- COL 2: COMMITMENTS VS SAVINGS -->
   <section class="panel">
-    <div class="panel-title">
-      COMMITMENTS VS SAVINGS
-      <button class="btn" onclick="syncCommitment()" style="font-size:0.5rem;padding:3px 7px">SYNC</button>
+    <div class="panel-hdr">
+      <div class="panel-title">Commitments vs Savings</div>
+      <button class="panel-btn" onclick="syncCommitment()">SYNC</button>
     </div>
-    <div style="margin-bottom:10px;padding:10px;border:1px solid rgba(0,229,255,0.15);background:rgba(0,0,0,0.3);flex-shrink:0">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-family:'Orbitron';font-size:0.7rem;letter-spacing:2px">PROGRESS</span>
-        <span id="comm-pct-label" style="font-family:'Orbitron';font-size:1.1rem">--%</span>
+    <div class="prog-wrap">
+      <div class="prog-header">
+        <div class="prog-label">MONTHLY PROGRESS</div>
+        <div id="comm-pct-label" style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;">--%</div>
       </div>
-      <div class="prog-bar-wrap">
-        <div class="prog-bar-fill on-track" id="comm-pct-bar" style="width:0%"></div>
+      <div class="prog-track">
+        <div class="prog-fill on-track" id="comm-pct-bar" style="width:0%"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;font-family:'Share Tech Mono';font-size:0.65rem;margin-top:5px;color:rgba(255,255,255,0.5)">
-        <span>COMMITMENT: <span id="comm-total" style="color:var(--c2)">--</span></span>
-        <span>SAVED: <span id="save-total" style="color:var(--c)">--</span></span>
+      <div class="prog-totals">
+        <span>COMMIT <span id="comm-total">--</span></span>
+        <span>SAVED <span id="save-total">--</span></span>
       </div>
-      <div id="fx-rates" style="font-family:'Share Tech Mono';font-size:0.55rem;color:rgba(0,229,255,0.35);margin-top:4px;text-align:right"></div>
+      <div id="fx-rates"></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;min-height:0;overflow-y:auto">
+    <div class="comm-grid">
       <div>
-        <div style="font-family:'Orbitron';font-size:0.6rem;letter-spacing:2px;color:rgba(0,229,255,0.5);border-bottom:1px solid rgba(0,229,255,0.15);padding-bottom:4px;margin-bottom:5px">COMMITMENTS</div>
+        <div class="comm-col-title">COMMITMENTS</div>
         <div id="comm-left"></div>
       </div>
       <div>
-        <div style="font-family:'Orbitron';font-size:0.6rem;letter-spacing:2px;color:rgba(0,229,255,0.5);border-bottom:1px solid rgba(0,229,255,0.15);padding-bottom:4px;margin-bottom:5px">SAVINGS</div>
+        <div class="comm-col-title">SAVINGS</div>
         <div id="comm-right"></div>
       </div>
     </div>
@@ -246,31 +562,31 @@ main{display:grid;grid-template-columns:1.3fr 1fr 1.1fr;gap:12px;padding:0 16px 
 
   <!-- COL 3: FINANCIAL INTEL -->
   <section class="panel">
-    <div class="panel-title">
-      FINANCIAL INTEL
-      <span id="stocks-updated" style="font-size:0.5rem;color:rgba(0,229,255,0.3);font-family:'Share Tech Mono'"></span>
+    <div class="panel-hdr">
+      <div class="panel-title">Financial Intel</div>
+      <span id="stocks-updated" style="font-family:'Space Mono',monospace;font-size:0.48rem;color:var(--muted2);"></span>
     </div>
-    <div class="fin-section" style="flex-shrink:0">
-      <div class="fin-section-label">▸ MARKET INDICES</div>
-      <div class="index-grid" id="index-grid"></div>
-      <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(0,229,255,0.1);padding:9px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-family:'Orbitron';font-size:0.6rem;letter-spacing:2px">CRYPTO FEAR &amp; GREED</span>
-          <span id="fg-value" style="font-family:'Share Tech Mono';font-size:1rem">--</span>
+    <div class="fin-sec">
+      <div class="fin-sec-label">MARKET INDICES</div>
+      <div class="idx-grid" id="index-grid"></div>
+      <div class="fg-wrap">
+        <div class="fg-toprow">
+          <div class="fg-title">CRYPTO FEAR &amp; GREED</div>
+          <div id="fg-value">--</div>
         </div>
-        <div class="fg-bar"><div class="fg-needle" id="fg-needle" style="left:50%"></div></div>
-        <div class="fg-labels"><span>EXTREME FEAR</span><span>FEAR</span><span>NEUTRAL</span><span>GREED</span><span>EXTREME GREED</span></div>
-        <div id="fg-label" style="text-align:center;font-size:0.65rem;margin-top:4px;color:rgba(255,255,255,0.5)">LOADING...</div>
+        <div class="fg-track"><div class="fg-needle" id="fg-needle" style="left:50%"></div></div>
+        <div class="fg-labels"><span>FEAR</span><span>NEUTRAL</span><span>GREED</span></div>
+        <div id="fg-label" style="font-family:'Space Mono',monospace;font-size:0.6rem;text-align:center;margin-top:5px;letter-spacing:1px;">LOADING...</div>
       </div>
     </div>
-    <div style="flex:1;overflow-y:auto;min-height:0">
-      <div class="fin-section-label">▸ INVESTMENTS OVERVIEW</div>
-      <div style="display:grid;grid-template-columns:90px 1fr 1fr 1fr 1fr;gap:4px;padding:3px 6px 5px;border-bottom:1px solid rgba(0,229,255,0.12);">
-        <div style="font-family:'Share Tech Mono';font-size:0.5rem;color:rgba(0,229,255,0.4)"></div>
-        <div style="font-family:'Share Tech Mono';font-size:0.5rem;color:rgba(0,229,255,0.4);text-align:right">PRICE / AVG BUY</div>
-        <div style="font-family:'Share Tech Mono';font-size:0.5rem;color:rgba(0,229,255,0.4);text-align:right">% CHANGE</div>
-        <div style="font-family:'Share Tech Mono';font-size:0.5rem;color:rgba(0,229,255,0.4);text-align:right">DV RCVD</div>
-        <div style="font-family:'Share Tech Mono';font-size:0.5rem;color:rgba(0,229,255,0.4);text-align:right">P/L %</div>
+    <div style="flex:1;overflow-y:auto;min-height:0;">
+      <div class="fin-sec-label">INVESTMENTS OVERVIEW</div>
+      <div class="holdings-hdr">
+        <div style="text-align:left"></div>
+        <div>PRICE / AVG</div>
+        <div>CHG%</div>
+        <div>DV RCVD</div>
+        <div>P/L %</div>
       </div>
       <div id="stocks-list"></div>
     </div>
@@ -280,7 +596,7 @@ main{display:grid;grid-template-columns:1.3fr 1fr 1.1fr;gap:12px;padding:0 16px 
 <div class="voice-ring" id="voice-ring" onclick="toggleVoice()" title="Toggle Voice">🎙</div>
 
 <script>
-const GROQ_KEY      = "xxx";
+// ── CONSTANTS ──────────────────────────────────────────────────────────────
 const TICKERS       = ['NVDA','AAPL','META','MSFT','JEPQ','1155.KL','5176.KL','5258.KL','GC=F','SOL-USD'];
 const TICKER_LABELS = ['NVDA','AAPL','META','MSFT','JEPQ','MAYBANK','SUNREIT','BIMB','GOLD','SOL'];
 const TICKER_NAMES  = {
@@ -288,20 +604,25 @@ const TICKER_NAMES  = {
   'JEPQ':'JPMorgan JEPQ','MAYBANK':'Maybank Bhd','SUNREIT':'Sunway REIT',
   'BIMB':'Bank Islam','GOLD':'Gold Futures','SOL':'Solana'
 };
-
-const today = new Date();
-let calViewMonth = today.getMonth();
-let calViewYear  = today.getFullYear();
-let voiceActive  = false;
-let recognition  = null;
-let stockCache   = {};
-let fxRates      = { MYR:1, PHP:13.5, USD:0.224 };
-let jarvisHistory = [];
-
-// Payment tasks stored in memory only (from Google Sheets)
-let paymentTasks = {}; // key: YYYY-MM-DD → array of texts
-
+const LABEL_TO_TICKER = {
+  'MAYBANK':'1155','SUNREIT':'5176','BIMB':'5258',
+  'NVDA':'NVDA','AAPL':'AAPL','META':'META','MSFT':'MSFT',
+  'JEPQ':'JEPQ','GOLD':'GOLD','SOL':'SOL'
+};
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+const today       = new Date();
+let calViewMonth  = today.getMonth();
+let calViewYear   = today.getFullYear();
+let voiceActive   = false;
+let recognition   = null;
+let stockCache    = {};
+let fxRates       = { MYR:1, PHP:13.5, USD:0.224 };
+let jarvisHistory = [];
+let paymentTasks  = {};
+let holdingsCache = {};
+let micGreetingDone = false;
 
 // ── CLOCK ──────────────────────────────────────────────────────────────────
 function tickClock() {
@@ -337,84 +658,80 @@ async function loadWeather() {
 }
 loadWeather(); setInterval(loadWeather,10*60*1000);
 
-// ── CALENDAR (read-only, shows payment tasks only) ─────────────────────────
+// ── CALENDAR ───────────────────────────────────────────────────────────────
 function shiftMonth(dir) {
   calViewMonth += dir;
   if(calViewMonth>11){calViewMonth=0;calViewYear++;}
   if(calViewMonth<0){calViewMonth=11;calViewYear--;}
   renderCalendar();
 }
-
 function renderCalendar() {
   const grid = document.getElementById('cal-grid');
   const yr=calViewYear, mo=calViewMonth;
   document.getElementById('cal-month-label').textContent = `${MONTH_NAMES[mo].toUpperCase()} ${yr}`;
   grid.innerHTML='';
   ['SUN','MON','TUE','WED','THU','FRI','SAT'].forEach(d=>grid.innerHTML+=`<div class="cal-head">${d}</div>`);
-  const firstDay    = new Date(yr,mo,1).getDay();
-  const daysInMonth = new Date(yr,mo+1,0).getDate();
+  const firstDay=new Date(yr,mo,1).getDay();
+  const daysInMonth=new Date(yr,mo+1,0).getDate();
   for(let i=0;i<firstDay;i++) grid.innerHTML+=`<div class="cal-cell" style="background:rgba(0,0,0,0.2)"></div>`;
   for(let d=1;d<=daysInMonth;d++){
-    const key     = `${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const tasks   = paymentTasks[key]||[];
-    const isToday = (yr===today.getFullYear()&&mo===today.getMonth()&&d===today.getDate());
+    const key=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const tasks=paymentTasks[key]||[];
+    const isToday=(yr===today.getFullYear()&&mo===today.getMonth()&&d===today.getDate());
     grid.innerHTML+=`<div class="cal-cell ${isToday?'today':''}">
-      <div class="cal-day-num">${d}${isToday?'<span style="color:var(--c2);font-size:0.45rem;margin-left:3px">●</span>':''}</div>
-      ${tasks.map(t=>`<div class="cal-task-chip pay-chip" title="${t}">${t.replace('PAY:','').substring(0,14)}${t.length>20?'…':''}</div>`).join('')}
+      <div class="cal-day-num">${d}${isToday?'<span style="color:var(--acid);font-size:0.4rem;margin-left:2px">●</span>':''}</div>
+      ${tasks.map(t=>`<div class="cal-task-chip pay-chip" title="${t}">${t.replace('PAY:','').substring(0,13)}${t.length>18?'…':''}</div>`).join('')}
     </div>`;
   }
   renderYearStrip(yr);
   updatePayCount();
 }
-
 function renderYearStrip(yr) {
-  const strip = document.getElementById('yr-strip'); strip.innerHTML='';
+  const strip=document.getElementById('yr-strip'); strip.innerHTML='';
   for(let i=1;i<=12;i++){
     let m=calViewMonth+i, y=yr;
     while(m>11){m-=12;y++;}
-    const moKey   = `${y}-${String(m+1).padStart(2,'0')}`;
-    const moTasks = [];
+    const moKey=`${y}-${String(m+1).padStart(2,'0')}`;
+    const moTasks=[];
     for(let d=1;d<=31;d++){const k=`${moKey}-${String(d).padStart(2,'0')}`;if(paymentTasks[k])moTasks.push(...paymentTasks[k].map(t=>({day:d,text:t})));}
     strip.innerHTML+=`<div class="yr-month">
       <div><div class="yr-mo-label">${MONTH_NAMES[m].slice(0,3).toUpperCase()} ${y}</div>
       <div class="yr-mo-count">${moTasks.length?moTasks.length+' payment'+(moTasks.length>1?'s':''):''}</div></div>
       <div class="yr-task-list">${moTasks.length
-        ? moTasks.slice(0,6).map(t=>`<div class="yr-task-item"><div class="yr-task-dot"></div>${t.day} — ${t.text.replace('PAY:','').trim()}</div>`).join('')+(moTasks.length>6?`<div style="color:rgba(0,229,255,0.3);font-size:0.6rem">+${moTasks.length-6} more</div>`:'')
-        : '<div class="yr-no-task">No payments scheduled</div>'
+        ? moTasks.slice(0,5).map(t=>`<div class="yr-task-item"><div class="yr-task-dot"></div>${t.day} — ${t.text.replace('PAY:','').trim()}</div>`).join('')+(moTasks.length>5?`<div style="color:var(--muted2);font-size:0.5rem">+${moTasks.length-5} more</div>`:'')
+        : '<div class="yr-no-task">No payments</div>'
       }</div></div>`;
   }
 }
-
 function updatePayCount() {
   let total=0; Object.values(paymentTasks).forEach(a=>total+=a.length);
   document.getElementById('pay-count').textContent=total+' PAYMENTS';
 }
-
 function checkTodayPayments() {
   const key=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   const t=paymentTasks[key]||[];
-  if(t.length>0) log('log-sys',`[TODAY] ${t.length} payment(s) due: ${t.map(x=>x.replace('PAY:','').trim()).join(' · ')}`);
+  if(t.length>0) log('log-sys',`[TODAY] ${t.length} payment(s): ${t.map(x=>x.replace('PAY:','').trim()).join(' · ')}`);
 }
 
 // ── STOCKS ─────────────────────────────────────────────────────────────────
 async function fetchStockPrice(ticker) {
-  const url     = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=5d`;
-  const proxies = [
+  const url=`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=5d`;
+  const proxies=[
     `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
     `https://corsproxy.io/?${encodeURIComponent(url)}`,
     `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
   ];
   for(const proxy of proxies){
     try{
-      const res    = await fetch(proxy,{signal:AbortSignal.timeout(6000)});
-      const json   = await res.json();
-      const raw    = typeof json.contents==='string'?JSON.parse(json.contents):json;
-      const result = raw.chart.result[0];
-      const meta   = result.meta;
-      const price  = meta.regularMarketPrice;
-      const quotes = result.indicators?.quote?.[0];
-      const closes = quotes?.close?.filter(v=>v!=null);
-      let prev     = meta.chartPreviousClose||meta.previousClose;
+      const res=await fetch(proxy,{signal:AbortSignal.timeout(6000)});
+      const json=await res.json();
+      const raw=typeof json.contents==='string'?JSON.parse(json.contents):json;
+      const result=raw.chart.result[0];
+      const meta=result.meta;
+      const price=meta.regularMarketPrice;
+      const quotes=result.indicators?.quote?.[0];
+      const closes=quotes?.close?.filter(v=>v!=null);
+      let prev=meta.chartPreviousClose||meta.previousClose;
       if(closes&&closes.length>=2) prev=closes[closes.length-2];
       if(price) return {price,chg:prev?((price-prev)/prev*100):0};
     }catch(e){continue;}
@@ -422,13 +739,10 @@ async function fetchStockPrice(ticker) {
   return null;
 }
 
-let holdingsCache = {};
-const LABEL_TO_SHEET_TICKER = {'MAYBANK':'1155','SUNREIT':'5176','BIMB':'5258'};
-
 async function loadHoldings() {
   try{
-    const res  = await fetch('http://localhost:5000/get-portfolio');
-    const data = await res.json();
+    const res=await fetch('http://localhost:5000/get-portfolio');
+    const data=await res.json();
     if(data.error){console.warn('[HOLDINGS]',data.error);return;}
     holdingsCache={};
     data.holdings.forEach(h=>{holdingsCache[h.ticker]=h;});
@@ -436,127 +750,113 @@ async function loadHoldings() {
 }
 
 async function renderStocks() {
-  const list = document.getElementById('stocks-list');
-  list.innerHTML = TICKERS.map((t,i)=>`
+  const list=document.getElementById('stocks-list');
+  list.innerHTML=TICKERS.map((t,i)=>`
     <div class="stock-row" id="sc-${i}">
-      <div><div class="stock-row-ticker">${TICKER_LABELS[i]}</div><div class="stock-row-name">${TICKER_NAMES[TICKER_LABELS[i]]||''}</div></div>
-      <div class="shimmer" style="height:18px;border-radius:2px"></div>
-      <div class="shimmer" style="height:14px;border-radius:2px"></div>
-      <div style="font-family:'Share Tech Mono';font-size:0.78rem;color:rgba(255,255,255,0.25);text-align:right">--</div>
-      <div style="font-family:'Share Tech Mono';font-size:0.78rem;color:rgba(255,255,255,0.25);text-align:right">--</div>
+      <div><div class="stock-ticker">${TICKER_LABELS[i]}</div><div class="stock-name">${TICKER_NAMES[TICKER_LABELS[i]]||''}</div></div>
+      <div class="shimmer" style="height:16px;"></div>
+      <div class="shimmer" style="height:12px;"></div>
+      <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--muted2);text-align:right">--</div>
+      <div style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--muted2);text-align:right">--</div>
     </div>`).join('');
 
   for(let i=0;i<TICKERS.length;i++){
-    const data     = await fetchStockPrice(TICKERS[i]);
-    const row      = document.getElementById(`sc-${i}`);
+    const data=await fetchStockPrice(TICKERS[i]);
+    const row=document.getElementById(`sc-${i}`);
     if(!row) continue;
-    const label    = TICKER_LABELS[i];
-    const sheetKey = LABEL_TO_SHEET_TICKER[label]||label;
-    const h        = holdingsCache[sheetKey]||{};
-    const isMYR    = ['MAYBANK','SUNREIT','BIMB'].includes(label);
-    const isJEPQ   = label==='JEPQ';
-    const sym      = isMYR?'RM':'$';
-    const fmtPrice = p=>p!=null?sym+p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';
+    const label=TICKER_LABELS[i];
+    const hKey=LABEL_TO_TICKER[label]||label;
+    const h=holdingsCache[hKey]||{};
+    const isMYR=['MAYBANK','SUNREIT','BIMB'].includes(label);
+    const isJEPQ=label==='JEPQ';
+    const sym=isMYR?'RM':'$';
+    const fmtP=p=>p!=null?sym+p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';
 
-    // Calculate P/L from Supabase data + live price
-    let plPct='--', plColor='rgba(255,255,255,0.3)', fmtDV='--', fmtAvg='--';
+    let plPct='--', plColor='var(--muted)', fmtDV='--', fmtAvg='--';
 
-    if(h.units && h.units>0){
-      const avgCost   = h.avg_cost||0;
-      const displayAvg= isJEPQ ? avgCost*(1/fxRates.USD) : avgCost;
-      fmtAvg = displayAvg>0 ? sym+displayAvg.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '--';
-
+    if(h.units&&h.units>0){
+      const avgCost=h.avg_cost||0;
+      const displayAvg=isJEPQ?avgCost*(1/fxRates.USD):avgCost;
+      fmtAvg=displayAvg>0?sym+displayAvg.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';
       if(data){
-        const livePrice  = data.price;
-        const costBasis  = h.cost_basis||0;
-        const units      = h.units||0;
-        const realised   = h.realised||0;
-        const divs       = h.dividends||0;
-        const isDiv      = h.type==='dividend';
-
-        // Unrealised P/L = (livePrice × units) - costBasis
-        const unrealised = (livePrice * units) - costBasis;
-
-        // Total P/L
-        const totalPL    = isDiv
-          ? unrealised + realised + divs
-          : unrealised + realised;
-
-        const plPctVal   = costBasis>0?(totalPL/costBasis)*100:0;
-        plPct            = (plPctVal>=0?'+':'')+plPctVal.toFixed(2)+'%';
-        plColor          = plPctVal>=0?'var(--c3)':'var(--c2)';
+        const unrealised=(data.price*h.units)-(h.cost_basis||0);
+        const totalPL=h.type==='dividend'?unrealised+(h.realised||0)+(h.dividends||0):unrealised+(h.realised||0);
+        const plPctVal=(h.cost_basis||0)>0?(totalPL/h.cost_basis)*100:0;
+        plPct=(plPctVal>=0?'+':'')+plPctVal.toFixed(2)+'%';
+        plColor=plPctVal>=0?'#4ade80':'var(--plasma)';
       }
-
-      // Dividends received
-      const dvRaw  = h.dividends||0;
-      const dvDisp = isJEPQ ? dvRaw*(1/fxRates.USD) : dvRaw;
-      fmtDV = dvDisp>0 ? sym+dvDisp.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '--';
+      const dvRaw=h.dividends||0;
+      const dvDisp=isJEPQ?dvRaw*(1/fxRates.USD):dvRaw;
+      fmtDV=dvDisp>0?sym+dvDisp.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'--';
     }
 
     if(data){
       stockCache[label]=data;
       const dir=data.chg>=0;
       row.innerHTML=`
-        <div><div class="stock-row-ticker">${label}</div><div class="stock-row-name">${TICKER_NAMES[label]||''}</div></div>
+        <div><div class="stock-ticker">${label}</div><div class="stock-name">${TICKER_NAMES[label]||''}</div></div>
         <div style="text-align:right;line-height:1.4">
-          <div style="font-family:'Share Tech Mono';font-size:0.95rem;color:#fff">${fmtPrice(data.price)}</div>
-          <div style="font-family:'Share Tech Mono';font-size:0.72rem;color:rgba(255,255,255,0.45)">${fmtAvg}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;color:var(--text)">${fmtP(data.price)}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--muted)">${fmtAvg}</div>
         </div>
-        <div style="font-size:0.82rem;text-align:right;color:${dir?'var(--c3)':'var(--c2)'}">${dir?'▲':'▼'} ${Math.abs(data.chg).toFixed(2)}%</div>
-        <div style="font-family:'Share Tech Mono';font-size:0.82rem;color:var(--c4);text-align:right">${fmtDV}</div>
-        <div style="font-family:'Share Tech Mono';font-size:0.82rem;color:${plColor};text-align:right">${plPct}</div>`;
+        <div style="font-family:'Space Mono',monospace;font-size:0.68rem;text-align:right;color:${dir?'#4ade80':'var(--plasma)'}">${dir?'▲':'▼'} ${Math.abs(data.chg).toFixed(2)}%</div>
+        <div style="font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--amber);text-align:right">${fmtDV}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:0.68rem;color:${plColor};text-align:right;font-weight:700">${plPct}</div>`;
     } else {
       row.innerHTML=`
-        <div><div class="stock-row-ticker">${label}</div><div class="stock-row-name">${TICKER_NAMES[label]||''}</div></div>
+        <div><div class="stock-ticker">${label}</div><div class="stock-name">${TICKER_NAMES[label]||''}</div></div>
         <div style="text-align:right;line-height:1.4">
-          <div style="font-family:'Share Tech Mono';font-size:0.95rem;color:rgba(255,255,255,0.3)">N/A</div>
-          <div style="font-family:'Share Tech Mono';font-size:0.72rem;color:rgba(255,255,255,0.45)">${fmtAvg}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:0.9rem;color:var(--muted2)">N/A</div>
+          <div style="font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--muted2)">${fmtAvg}</div>
         </div>
-        <div style="font-size:0.82rem;text-align:right;color:rgba(255,255,255,0.2)">--</div>
-        <div style="font-family:'Share Tech Mono';font-size:0.82rem;color:var(--c4);text-align:right">${fmtDV}</div>
-        <div style="font-family:'Share Tech Mono';font-size:0.82rem;color:${plColor};text-align:right">${plPct}</div>`;
+        <div style="font-family:'Space Mono',monospace;font-size:0.68rem;text-align:right;color:var(--muted2)">--</div>
+        <div style="font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--amber);text-align:right">${fmtDV}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:0.68rem;color:${plColor};text-align:right">${plPct}</div>`;
     }
   }
   document.getElementById('stocks-updated').textContent=`UPDATED ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;
 }
 
 async function renderIndices() {
-  const grid  = document.getElementById('index-grid');
-  const pairs = [['%5EGSPC','S&P 500'],['%5EIXIC','NASDAQ']];
-  grid.innerHTML=pairs.map(([t,n])=>`<div class="index-card"><div class="index-name">${n}</div><div class="index-val shimmer" id="idx-${t}">--</div><div class="index-chg" id="idxc-${t}">--</div></div>`).join('');
+  const grid=document.getElementById('index-grid');
+  const pairs=[['%5EGSPC','S&P 500'],['%5EIXIC','NASDAQ']];
+  grid.innerHTML=pairs.map(([t,n])=>`<div class="idx-card"><div class="idx-name">${n}</div><div class="idx-val shimmer" id="idx-${t}" style="height:26px;margin:4px 0">--</div><div class="idx-chg" id="idxc-${t}">--</div></div>`).join('');
   for(const [ticker,name] of pairs){
     const data=await fetchStockPrice(ticker);
     const el=document.getElementById(`idx-${ticker}`);
     const elc=document.getElementById(`idxc-${ticker}`);
-    if(el) el.classList.remove('shimmer');
-    if(data&&el){const dir=data.chg>=0;el.textContent=data.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});elc.innerHTML=`<span style="color:${dir?'var(--c3)':'var(--c2)'}">${dir?'▲':'▼'} ${Math.abs(data.chg).toFixed(2)}%</span>`;}
-    else if(el) el.textContent='N/A';
+    if(el){el.classList.remove('shimmer');el.style.height='';}
+    if(data&&el){
+      const dir=data.chg>=0;
+      el.textContent=data.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+      elc.innerHTML=`<span style="font-family:'Space Mono',monospace;font-size:0.62rem;color:${dir?'#4ade80':'var(--plasma)'}">${dir?'▲':'▼'} ${Math.abs(data.chg).toFixed(2)}%</span>`;
+    } else if(el) el.textContent='N/A';
   }
 }
 
 async function renderFearGreed() {
   try{
-    const res   = await fetch('https://api.alternative.me/fng/?limit=1');
-    const json  = await res.json();
-    const entry = json.data[0];
-    const score = parseInt(entry.value);
-    const rating= entry.value_classification.toUpperCase();
-    document.getElementById('fg-value').textContent   = score;
-    document.getElementById('fg-needle').style.left   = score+'%';
-    document.getElementById('fg-label').textContent   = rating;
+    const res=await fetch('https://api.alternative.me/fng/?limit=1');
+    const json=await res.json();
+    const entry=json.data[0];
+    const score=parseInt(entry.value);
+    const rating=entry.value_classification.toUpperCase();
+    document.getElementById('fg-value').textContent=score;
+    document.getElementById('fg-needle').style.left=score+'%';
+    document.getElementById('fg-label').textContent=rating;
     const colors={'EXTREME FEAR':'#e74c3c','FEAR':'#e67e22','NEUTRAL':'#f1c40f','GREED':'#2ecc71','EXTREME GREED':'#27ae60'};
     const col=colors[rating]||'#fff';
     document.getElementById('fg-value').style.color=col;
     document.getElementById('fg-label').style.color=col;
-  }catch(e){document.getElementById('fg-label').textContent='DATA UNAVAILABLE';}
+  }catch(e){document.getElementById('fg-label').textContent='UNAVAILABLE';}
 }
 
-// ── FX ─────────────────────────────────────────────────────────────────────
+// ── FX RATES ───────────────────────────────────────────────────────────────
 async function loadFxRates() {
   try{
-    const res       = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-    const data      = await res.json();
-    const usdToMyr  = data.rates.MYR||4.46;
+    const res=await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const data=await res.json();
+    const usdToMyr=data.rates.MYR||4.46;
     fxRates.MYR=1; fxRates.USD=1/usdToMyr; fxRates.PHP=data.rates.PHP/usdToMyr;
     const el=document.getElementById('fx-rates');
     if(el) el.textContent=`1 MYR = ${fxRates.PHP.toFixed(2)} PHP = ${(1/usdToMyr).toFixed(4)} USD`;
@@ -564,14 +864,12 @@ async function loadFxRates() {
     if(rateEl) rateEl.textContent=`1 USD = RM ${usdToMyr.toFixed(4)}`;
   }catch(e){}
 }
-
 function toMYR(amount,currency){
   if(!amount) return 0;
   if(currency==='PHP') return amount/fxRates.PHP;
   if(currency==='USD') return amount/fxRates.USD;
   return amount;
 }
-
 function formatAmt(amount,currency){
   if(amount==null) return '';
   const sym={MYR:'RM',PHP:'₱',USD:'$'}[currency]||'RM';
@@ -583,120 +881,93 @@ async function syncCommitment() {
   log('log-sys','[SYNC] Loading commitment data...');
   try{
     await loadFxRates();
-    const res  = await fetch('http://localhost:5000/get-commitment');
-    const data = await res.json();
+    const res=await fetch('http://localhost:5000/get-commitment');
+    const data=await res.json();
     if(data.error) throw new Error(data.error);
-
-    renderCommitmentExcel(data.commitments, data.savings);
-
-    // Rebuild payment tasks from Google Sheets
-    paymentTasks = {};
-    if(data.calendar_tasks && data.calendar_tasks.length>0){
+    renderCommitmentExcel(data.commitments,data.savings);
+    paymentTasks={};
+    if(data.calendar_tasks&&data.calendar_tasks.length>0){
       data.calendar_tasks.forEach(ct=>{
         const key=`${ct.year}-${String(ct.month).padStart(2,'0')}-${String(ct.day).padStart(2,'0')}`;
         if(!paymentTasks[key]) paymentTasks[key]=[];
         paymentTasks[key].push(ct.text);
       });
       renderCalendar();
-      log('log-sys',`[SYNC] ${data.calendar_tasks.length} payment dates loaded into calendar.`);
+      log('log-sys',`[SYNC] ${data.calendar_tasks.length} payment dates loaded.`);
     }
-
     checkTodayPayments();
     log('log-sys','[SYNC] Commitment data loaded.');
-  }catch(e){ log('log-err','[SYNC] Could not load data. Is bridge.py running?'); }
+  }catch(e){log('log-err','[SYNC] Could not load data. Is bridge.py running?');}
 }
 
-function renderCommitmentExcel(commitments, savings) {
-  const leftEl  = document.getElementById('comm-left');
-  const rightEl = document.getElementById('comm-right');
-  const commTotal = commitments.filter(r=>r.is_total).reduce((s,r)=>s+(r.amount_myr||0),0);
-  const saveTotal = savings.filter(r=>r.is_total).reduce((s,r)=>s+(r.amount_myr||0),0);
-  const pct    = commTotal>0?Math.min((saveTotal/commTotal)*100,100):0;
-  const isDone = saveTotal>=commTotal;
-  document.getElementById('comm-pct-label').textContent  = isDone?'✓ SECURED':pct.toFixed(1)+'%';
-  document.getElementById('comm-pct-label').style.color  = isDone?'var(--c3)':pct>=70?'var(--c)':'var(--c2)';
-  document.getElementById('comm-pct-bar').style.width    = pct+'%';
-  document.getElementById('comm-pct-bar').className      = 'prog-bar-fill '+(isDone?'done':pct>=50?'on-track':'behind');
-  document.getElementById('comm-total').textContent      = 'RM '+commTotal.toLocaleString('en-MY',{minimumFractionDigits:2});
-  document.getElementById('save-total').textContent      = 'RM '+saveTotal.toLocaleString('en-MY',{minimumFractionDigits:2});
+function renderCommitmentExcel(commitments,savings) {
+  const leftEl=document.getElementById('comm-left');
+  const rightEl=document.getElementById('comm-right');
+  const commTotal=commitments.filter(r=>r.is_total).reduce((s,r)=>s+(r.amount_myr||0),0);
+  const saveTotal=savings.filter(r=>r.is_total).reduce((s,r)=>s+(r.amount_myr||0),0);
+  const pct=commTotal>0?Math.min((saveTotal/commTotal)*100,100):0;
+  const isDone=saveTotal>=commTotal;
+  const pctLabel=document.getElementById('comm-pct-label');
+  pctLabel.textContent=isDone?'✓ SECURED':pct.toFixed(1)+'%';
+  pctLabel.style.color=isDone?'var(--acid)':pct>=70?'var(--frost)':'var(--plasma)';
+  const bar=document.getElementById('comm-pct-bar');
+  bar.style.width=pct+'%';
+  bar.className='prog-fill '+(isDone?'done':pct>=50?'on-track':'behind');
+  document.getElementById('comm-total').textContent='RM '+commTotal.toLocaleString('en-MY',{minimumFractionDigits:2});
+  document.getElementById('save-total').textContent='RM '+saveTotal.toLocaleString('en-MY',{minimumFractionDigits:2});
 
   function rowHTML(r,isRight){
-    const origAmt = formatAmt(r.amount,r.currency||'MYR');
-    const myrNote = r.currency&&r.currency!=='MYR'&&r.amount&&!r.is_total?`<span style="color:rgba(0,229,255,0.35);font-size:0.5rem"> (RM${toMYR(r.amount,r.currency).toFixed(0)})</span>`:'';
-    const tc = isRight?'var(--c)':'var(--c2)';
-    return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(0,229,255,0.05);min-height:24px;align-items:center;${r.is_total?'border-top:1px solid rgba(0,229,255,0.2);margin-top:3px;padding-top:5px;':''}${r._spacer?'opacity:0;pointer-events:none;':''}">
-      <span style="font-size:0.62rem;color:${r.is_total?tc:'rgba(255,255,255,0.6)'};font-weight:${r.is_total?'700':'400'};padding-right:4px;line-height:1.4">${r.label||''}</span>
-      <span style="font-family:'Share Tech Mono';font-size:0.62rem;white-space:nowrap;color:${r.is_total?tc:'rgba(255,255,255,0.8)'}">
-        ${r.amount_myr!=null&&!r._spacer?origAmt+myrNote:''}
-      </span></div>`;
+    if(r._spacer) return `<div class="comm-row" style="opacity:0;pointer-events:none;"><span class="comm-row-label"></span><span class="comm-row-amount"></span></div>`;
+    const origAmt=formatAmt(r.amount,r.currency||'MYR');
+    const myrNote=r.currency&&r.currency!=='MYR'&&r.amount&&!r.is_total?`<span style="color:var(--muted2);font-size:0.5rem"> ≈RM${toMYR(r.amount,r.currency).toFixed(0)}</span>`:'';
+    const cls=`comm-row${r.is_total?' is-total':''}${isRight?' is-right':''}`;
+    const totalStyle=r.is_total?' style="border-top:1px solid var(--rim2);margin-top:4px;padding-top:6px"':'';
+    return `<div class="${cls}"${totalStyle}>
+      <span class="comm-row-label">${r.label||''}</span>
+      <span class="comm-row-amount">${r.amount_myr!=null?origAmt+myrNote:''}</span>
+    </div>`;
   }
 
   const maxLen=Math.max(commitments.length,savings.length);
   const pC=[...commitments]; const pS=[...savings];
   while(pC.length<maxLen) pC.push({label:'',amount:null,amount_myr:null,currency:'MYR',_spacer:true});
   while(pS.length<maxLen) pS.push({label:'',amount:null,amount_myr:null,currency:'MYR',_spacer:true});
-  leftEl.innerHTML  = pC.map(r=>rowHTML(r,false)).join('');
-  rightEl.innerHTML = pS.map(r=>rowHTML(r,true)).join('');
+  leftEl.innerHTML=pC.map(r=>rowHTML(r,false)).join('');
+  rightEl.innerHTML=pS.map(r=>rowHTML(r,true)).join('');
 }
 
-// ── JARVIS AI ──────────────────────────────────────────────────────────────
+// ── JARVIS LOG ─────────────────────────────────────────────────────────────
 function log(cls,msg){
   const el=document.getElementById('ai-log');
   el.innerHTML+=`<div class="${cls}">${msg}</div>`;
   el.scrollTop=el.scrollHeight;
 }
-
 function clearLog(){
   document.getElementById('ai-log').innerHTML='<div class="log-sys">[SYS] Memory purged. Ready.</div>';
   jarvisHistory=[];
 }
 
+// ── SEND COMMAND ───────────────────────────────────────────────────────────
 async function sendCmd(){
   const inp=document.getElementById('user-input');
   const query=inp.value.trim(); if(!query) return;
   document.getElementById('user-input').value='';
   const q=query.toLowerCase();
-
-  // Mic controls
-  if(q.includes('turn off mic')||q.includes('mic off')||q.includes('stop listening')){
-    stopVoice(); log('log-jarvis','[JARVIS] Mic deactivated, Sir.'); speak("Mic deactivated, Sir."); return;
-  }
-  if(q.includes('turn on mic')||q.includes('mic on')||q.includes('start listening')){
-    startVoice(); return;
-  }
-
-  // Timer
+  if(q.includes('turn off mic')||q.includes('mic off')||q.includes('stop listening')){stopVoice();log('log-jarvis','[JARVIS] Mic deactivated, Sir.');speak("Mic deactivated, Sir.");return;}
+  if(q.includes('turn on mic')||q.includes('mic on')||q.includes('start listening')){startVoice();return;}
   const timerMins=parseTimerCommand(q);
-  if(timerMins&&timerMins>0&&timerMins<=240){
-    setTimer(timerMins,`${timerMins} minute timer`);
-    speak(`Timer set for ${timerMins} minutes, Sir.`);
-    return;
-  }
-
-  // Alarm cancel
-  if(q.includes('cancel alarm')||q.includes('stop alarm')||q.includes('clear alarm')){
-    cancelAlarms(); return;
-  }
-
-  // Alarm set
+  if(timerMins&&timerMins>0&&timerMins<=240){setTimer(timerMins,`${timerMins} minute timer`);speak(`Timer set for ${timerMins} minutes, Sir.`);return;}
+  if(q.includes('cancel alarm')||q.includes('stop alarm')||q.includes('clear alarm')){cancelAlarms();return;}
   const alarm=parseAlarmCommand(q);
-  if(alarm){
-    const t=setAlarm(alarm.hour,alarm.min,'');
-    speak(`Alarm set for ${t}, Sir.`);
-    return;
-  }
-
-  // App launcher
+  if(alarm){const t=setAlarm(alarm.hour,alarm.min,'');speak(`Alarm set for ${t}, Sir.`);return;}
   const appName=parseAppCommand(query);
-  if(appName){ openApp(appName); return; }
-
-  // WhatsApp
+  if(appName){openApp(appName);return;}
   const waCmd=parseWhatsAppCommand(query);
-  if(waCmd){ sendWhatsApp(waCmd.phone,waCmd.message,waCmd.contact); return; }
-
+  if(waCmd){sendWhatsApp(waCmd.phone,waCmd.message,waCmd.contact);return;}
   await askJarvis(query);
 }
 
+// ── BUILD CONTEXT ──────────────────────────────────────────────────────────
 function buildContext(){
   const now=new Date();
   const timeStr=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
@@ -709,8 +980,15 @@ function buildContext(){
   const commTotal=document.getElementById('comm-total')?.textContent||'unknown';
   const saveTotal=document.getElementById('save-total')?.textContent||'unknown';
   const commPct=document.getElementById('comm-pct-label')?.textContent||'unknown';
-  // Today's payments
-// All payments grouped by month
+  const usdMyr=document.getElementById('usd-myr-rate')?.textContent||'';
+  const fgVal=document.getElementById('fg-value').textContent;
+  const fgLabel=document.getElementById('fg-label').textContent;
+  const sp500=document.getElementById('idx-%5EGSPC')?.textContent||'loading';
+  const nasdaq=document.getElementById('idx-%5EIXIC')?.textContent||'loading';
+
+  const todayKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const todayPay=(paymentTasks[todayKey]||[]).map(t=>t.replace('PAY:','').trim()).join(', ')||'None';
+
   const allPayments={};
   Object.entries(paymentTasks).forEach(([key,tasks])=>{
     const [y,m,d]=key.split('-');
@@ -718,56 +996,28 @@ function buildContext(){
     if(!allPayments[monthLabel]) allPayments[monthLabel]=[];
     tasks.forEach(t=>allPayments[monthLabel].push(`Day ${parseInt(d)}: ${t.replace('PAY:','').trim()}`));
   });
+  const allPaySummary=Object.entries(allPayments).map(([month,payments])=>`${month} (${payments.length} payments): ${payments.join(' | ')}`).join('\n');
 
-  const allPaySummary=Object.entries(allPayments)
-    .map(([month,payments])=>`${month} (${payments.length} payments): ${payments.join(' | ')}`)
-    .join('\n');
-
-  // Monthly totals from commitments panel
   const commItems=[...document.querySelectorAll('#comm-left > div')].map(el=>{
-    const label=el.querySelector('span:first-child')?.textContent?.trim();
-    const amount=el.querySelector('span:last-child')?.textContent?.trim();
+    const label=el.querySelector('.comm-row-label')?.textContent?.trim();
+    const amount=el.querySelector('.comm-row-amount')?.textContent?.trim();
     return (label&&amount)?`${label}: ${amount}`:null;
-  }).filter(Boolean);
+  }).filter(Boolean).join(', ');
 
-  const commTotalByMonth=commItems.join(', ');
-
-  // Today's payments
-  const todayKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-  const todayPay=(paymentTasks[todayKey]||[]).map(t=>t.replace('PAY:','').trim()).join(', ')||'None';
   const stockSummary=Object.entries(stockCache).map(([t,d])=>`${t}: $${d.price.toFixed(2)} (${d.chg.toFixed(2)}%)`).join(', ');
-  const fgVal=document.getElementById('fg-value').textContent;
-  const fgLabel=document.getElementById('fg-label').textContent;
-  const sp500=document.getElementById('idx-%5EGSPC')?.textContent||'loading';
-  const nasdaq=document.getElementById('idx-%5EIXIC')?.textContent||'loading';
-  const usdMyr=document.getElementById('usd-myr-rate')?.textContent||'';
 
-  // Holdings from Google Sheets via holdingsCache
-  const TICKER_DISPLAY={'1155':'MAYBANK','5176':'SUNREIT','5258':'BIMB','JEPQ':'JEPQ','NVDA':'NVDA','AAPL':'AAPL','META':'META','MSFT':'MSFT'};
-  const holdingsSummary=Object.entries(holdingsCache).map(([ticker,h])=>{
-    const isMYR=['1155','5176','5258'].includes(ticker);
-    const sym=isMYR?'RM':'$';
-    const avgBuy=h.avg_buy!=null?`${sym}${h.avg_buy.toFixed(2)}`:'--';
-    const displayName=TICKER_DISPLAY[ticker]||ticker;
-    return `${displayName} (${ticker}): avg buy ${avgBuy}, P/L ${h.pl_pct?.toFixed(2)||'--'}%`;
-  }).join('\n');
-
-  // Read P/L directly from rendered stock rows — most accurate
-  // Read P/L directly from rendered stock rows — most accurate
   const domHoldings=[];
   document.querySelectorAll('#stocks-list .stock-row').forEach(row=>{
-    const ticker=row.querySelector('.stock-row-ticker')?.textContent?.trim();
+    const ticker=row.querySelector('.stock-ticker')?.textContent?.trim();
     if(!ticker) return;
-    // Get all 5 columns in order: [ticker col, price/avg col, change col, dv col, pl col]
     const cols=[...row.children];
-    const price=cols[1]?.querySelector('[style*="0.95rem"]')?.textContent?.trim()||'--';
-    const avg=cols[1]?.querySelector('[style*="0.72rem"]')?.textContent?.trim()||'--';
+    const price=cols[1]?.querySelector('[style*="0.9rem"]')?.textContent?.trim()||'--';
+    const avg=cols[1]?.querySelector('[style*="0.58rem"]')?.textContent?.trim()||'--';
     const chg=cols[2]?.textContent?.trim()||'--';
     const dv=cols[3]?.textContent?.trim()||'--';
     const pl=cols[4]?.textContent?.trim()||'--';
     domHoldings.push(`${ticker}: price ${price}, avg buy ${avg}, daily change ${chg}, dividend received ${dv}, P/L% ${pl}`);
   });
-  const domHoldingsSummary=domHoldings.join('\n');
 
   return `TIME: ${timeStr}
 DATE: ${dateStr}
@@ -777,77 +1027,48 @@ LIVE WEATHER (use exclusively for weather questions):
   Feels Like: ${feelsLike}
   Humidity: ${humidity}
   Wind: ${wind}
+FX RATE: ${usdMyr}
 PAYMENTS DUE TODAY: ${todayPay}
 ALL PAYMENTS BY MONTH:
 ${allPaySummary||'None loaded'}
-COMMITMENT LINE ITEMS (use for total questions):
-${commTotalByMonth||'None loaded'}
+COMMITMENT LINE ITEMS: ${commItems||'None loaded'}
 COMMITMENTS: ${commTotal} | SAVED: ${saveTotal} | READINESS: ${commPct}
-FX RATE: ${usdMyr}
 LIVE PRICES: ${stockSummary||'loading'}
-MY HOLDINGS — LIVE FROM SCREEN (use exclusively for avg buy, P/L, dividend questions):
-${domHoldingsSummary||holdingsSummary||'Not loaded'}
+MY HOLDINGS (use exclusively for avg buy, P/L, dividend questions):
+${domHoldings.join('\n')||'Not loaded'}
 S&P 500: ${sp500} | NASDAQ: ${nasdaq}
 CRYPTO F&G: ${fgVal} (${fgLabel})`.trim();
 }
 
+// ── JARVIS AI ──────────────────────────────────────────────────────────────
 async function askJarvis(query){
   log('log-user',`> ${query}`);
   log('log-sys','[JARVIS] Processing...');
 
   const recentCtx=jarvisHistory.slice(-6).map(m=>({role:m.role,content:m.content}));
-
-  // Keywords that can be answered from dashboard data — use Groq (free)
-  // External/news questions always go to Claude
-  const externalKeywords=[
-    'earning','report','news','announce','release','next week','this week',
-    'forecast','prediction','analyst','rating','upgrade','downgrade',
-    'ipo','merger','acquisition','lawsuit','regulation','fed','interest rate',
-    'inflation','gdp','election','policy','crisis','war','sanction',
-    'what is','who is','when is','where is','why is','how to','explain','tell me about'
-  ];
+  const externalKeywords=['earning','report','news','announce','release','next week','this week','forecast','prediction','analyst','rating','upgrade','downgrade','ipo','merger','acquisition','lawsuit','regulation','fed','interest rate','inflation','gdp','election','policy','crisis','war','sanction','what is','who is','when is','where is','why is','how to','explain','tell me about'];
   const isExternal=externalKeywords.some(w=>query.toLowerCase().includes(w));
-
-  // Dashboard data questions go to Groq (free)
-  const dashboardKeywords=[
-    'timer','alarm','minute','second','remind',
-    'temperature','weather','humidity','wind','feels',
-    'payment','commit','saving','progress','readiness','secured',
-    'my stock','my portfolio','my profit','my loss','my holdings','my average','my dividend',
-    'jepq','maybank','sunreit','bimb','open','email',
-    'sp500','s&p','nasdaq','fear','greed',
-    'how much','how many','total','this month','next month','today','due'
-  ];
+  const dashboardKeywords=['timer','alarm','minute','second','remind','temperature','weather','humidity','wind','feels','payment','commit','saving','progress','readiness','secured','my stock','my portfolio','my profit','my loss','my holdings','my average','my dividend','jepq','maybank','sunreit','bimb','sp500','s&p','nasdaq','fear','greed','how much','how many','total','this month','next month','today','due'];
   const isDashboard=!isExternal&&dashboardKeywords.some(w=>query.toLowerCase().includes(w));
 
   const systemPrompt=`You are JARVIS, an elite AI assistant for a personal mission control dashboard.
 Be concise, analytical, slightly formal. Address user as "Sir". Under 100 words. Plain text only. Answer directly.
-CRITICAL: For weather — use DASHBOARD CONTEXT data only.
+CRITICAL: For weather — use DASHBOARD CONTEXT data only, never web search.
 CRITICAL: For avg buy, P/L%, dividends, holdings — use MY HOLDINGS from DASHBOARD CONTEXT only. Always state P/L% explicitly.
 CRITICAL: For payments, commitments, savings — use DASHBOARD CONTEXT only.
-CRITICAL: For live stock prices — use LIVE PRICES from DASHBOARD CONTEXT only.`;
+CRITICAL: For live stock prices — use LIVE PRICES from DASHBOARD CONTEXT only.
+CRITICAL: For total payments or commitments — use COMMITMENT LINE ITEMS. Do not sum manually.`;
 
   const context=buildContext();
 
   if(isDashboard){
-    // ── GROQ (free) — dashboard questions ─────────────────────────────────
-    const messages=[
-      {role:'system',content:`${systemPrompt}\n\n${context}`},
-      ...jarvisHistory.slice(-6),
-      {role:'user',content:query}
-    ];
-
+    const messages=[{role:'system',content:`${systemPrompt}\n\n${context}`},...jarvisHistory.slice(-6),{role:'user',content:query}];
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),15000);
     try{
       let res;
       for(let attempt=0;attempt<3;attempt++){
-        res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-          method:'POST',
-          headers:{'Authorization':`Bearer ${GROQ_KEY}`,'Content-Type':'application/json'},
-          signal:controller.signal,
-          body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:150,temperature:0.3,messages})
-        });
+        res=await fetch('http://localhost:5000/groq-query',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:150,temperature:0.3,messages})});
         if(res.status!==429) break;
         log('log-sys',`[AI] Rate limited, retrying in ${(attempt+1)*3}s...`);
         await new Promise(r=>setTimeout(r,(attempt+1)*3000));
@@ -858,57 +1079,47 @@ CRITICAL: For live stock prices — use LIVE PRICES from DASHBOARD CONTEXT only.
       if(last&&last.textContent.includes('Processing')) logEl.removeChild(last);
       if(!res.ok) throw new Error(data?.error?.message||`Groq HTTP ${res.status}`);
       const reply=(data.choices?.[0]?.message?.content||'').trim();
-      if(!reply){
-        log('log-jarvis','[JARVIS] Apologies Sir, I did not catch that. Could you rephrase?');
-        speak('Apologies Sir, could you rephrase that?');
-        return;
-      }
-      log('log-jarvis',`[JARVIS] ${reply}`);
-      speak(reply);
-      jarvisHistory.push({role:'user',content:query});
-      jarvisHistory.push({role:'assistant',content:reply});
+      if(!reply){log('log-jarvis','[JARVIS] Apologies Sir, I did not catch that. Could you rephrase?');speak('Apologies Sir, could you rephrase that?');return;}
+      log('log-jarvis',`[JARVIS] ${reply}`);speak(reply);
+      jarvisHistory.push({role:'user',content:query});jarvisHistory.push({role:'assistant',content:reply});
       if(jarvisHistory.length>20) jarvisHistory=jarvisHistory.slice(-20);
     }catch(e){
-      const logEl=document.getElementById('ai-log');
-      const last=logEl.lastElementChild;
+      const logEl=document.getElementById('ai-log');const last=logEl.lastElementChild;
       if(last&&last.textContent.includes('Processing')) logEl.removeChild(last);
       log('log-err',`[AI] ${e.name==='AbortError'?'Timeout':e.message}`);
     }finally{clearTimeout(timeout);}
-
   } else {
-    // ── CLAUDE API — general/web questions ────────────────────────────────
     log('log-sys','[WEB] Searching with Claude...');
     const controller=new AbortController();
     const timeout=setTimeout(()=>controller.abort(),20000);
     try{
-      const res=await fetch('http://localhost:5000/jarvis-query',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        signal:controller.signal,
-        body:JSON.stringify({
-          system:`${systemPrompt}\n\n${context}`,
-          messages:[...recentCtx,{role:'user',content:query}]
-        })
-      });
+      let res;
+      for(let attempt=0;attempt<2;attempt++){
+        res=await fetch('http://localhost:5000/jarvis-query',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({system:`${systemPrompt}\n\n${context}`,messages:[...recentCtx,{role:'user',content:query}]})});
+        const tempData=await res.clone().json();
+        if(!tempData.error||!String(tempData.error).includes('overloaded')) break;
+        log('log-sys',`[AI] Claude overloaded, retrying in ${(attempt+1)*2}s...`);
+        await new Promise(r=>setTimeout(r,(attempt+1)*2000));
+      }
       const data=await res.json();
-      const logEl=document.getElementById('ai-log');
-      const last=logEl.lastElementChild;
+      const logEl=document.getElementById('ai-log');const last=logEl.lastElementChild;
       if(last&&last.textContent.includes('Processing')) logEl.removeChild(last);
-      if(data.error){log('log-err',`[AI] ${data.error}`);return;}
-      const reply=(data.reply||'').trim();
-      if(!reply){
-        log('log-jarvis','[JARVIS] Apologies Sir, I did not catch that. Could you rephrase?');
-        speak('Apologies Sir, could you rephrase that?');
+      if(data.error){
+        log('log-sys','[AI] Claude unavailable, falling back to Groq...');
+        const fbRes=await fetch('http://localhost:5000/groq-query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:150,temperature:0.3,messages:[{role:'system',content:`${systemPrompt}\n\n${context}`},...jarvisHistory.slice(-6),{role:'user',content:query}]})});
+        const fbData=await fbRes.json();
+        const fbReply=(fbData.choices?.[0]?.message?.content||'').trim();
+        if(fbReply){log('log-jarvis',`[JARVIS] ${fbReply}`);speak(fbReply);jarvisHistory.push({role:'user',content:query});jarvisHistory.push({role:'assistant',content:fbReply});if(jarvisHistory.length>20)jarvisHistory=jarvisHistory.slice(-20);}
+        else{log('log-err','[AI] Both Claude and Groq unavailable.');}
         return;
       }
-      log('log-jarvis',`[JARVIS] ${reply}`);
-      speak(reply);
-      jarvisHistory.push({role:'user',content:query});
-      jarvisHistory.push({role:'assistant',content:reply});
+      const reply=(data.reply||'').trim();
+      if(!reply){log('log-jarvis','[JARVIS] Apologies Sir, I did not catch that. Could you rephrase?');speak('Apologies Sir, could you rephrase that?');return;}
+      log('log-jarvis',`[JARVIS] ${reply}`);speak(reply);
+      jarvisHistory.push({role:'user',content:query});jarvisHistory.push({role:'assistant',content:reply});
       if(jarvisHistory.length>20) jarvisHistory=jarvisHistory.slice(-20);
     }catch(e){
-      const logEl=document.getElementById('ai-log');
-      const last=logEl.lastElementChild;
+      const logEl=document.getElementById('ai-log');const last=logEl.lastElementChild;
       if(last&&last.textContent.includes('Processing')) logEl.removeChild(last);
       log('log-err',`[AI] ${e.name==='AbortError'?'Timeout':e.message}`);
     }finally{clearTimeout(timeout);}
@@ -931,8 +1142,6 @@ function speak(text){
 
 function toggleVoice(){if(voiceActive)stopVoice();else startVoice();}
 
-let micGreetingDone = false;
-
 function startVoice(){
   const SpeechAPI=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SpeechAPI){log('log-err','[ERR] Use Chrome for voice support.');return;}
@@ -943,9 +1152,7 @@ function startVoice(){
     const txt=e.results[e.results.length-1][0].transcript.toLowerCase().trim();
     if(txt.length<2) return;
     log('log-sys',`[MIC] Heard: "${txt}"`);
-    if(txt.includes('turn off')||txt.includes('mic off')||txt.includes('stop listening')||txt.includes('sleep')||txt.includes('jarvis off')){
-      log('log-jarvis','[JARVIS] Mic deactivated, Sir.'); speak("Mic deactivated, Sir."); stopVoice(); return;
-    }
+    if(txt.includes('turn off')||txt.includes('mic off')||txt.includes('stop listening')||txt.includes('sleep')||txt.includes('jarvis off')){log('log-jarvis','[JARVIS] Mic deactivated, Sir.');speak("Mic deactivated, Sir.");stopVoice();return;}
     let cmd=txt;
     if(txt.includes('hey jarvis')||txt.includes('jarvis')){
       cmd=txt.replace(/hey jarvis|jarvis/gi,'').trim();
@@ -959,13 +1166,8 @@ function startVoice(){
     const appName=parseAppCommand(cmd);
     if(appName){openApp(appName);return;}
     const waCmd=parseWhatsAppCommand(cmd);
-        if(waCmd){sendWhatsApp(waCmd.phone,waCmd.message,waCmd.contact);return;}
-
-        // Double check app command before sending to AI
-        const appCheck=parseAppCommand(cmd);
-        if(appCheck){openApp(appCheck);return;}
-
-        askJarvis(txt.includes('hey jarvis')||txt.includes('jarvis')?cmd:txt);
+    if(waCmd){sendWhatsApp(waCmd.phone,waCmd.message,waCmd.contact);return;}
+    askJarvis(txt.includes('hey jarvis')||txt.includes('jarvis')?cmd:txt);
   };
   recognition.onerror=(e)=>{
     if(e.error==='aborted') return;
@@ -979,15 +1181,11 @@ function startVoice(){
     document.getElementById('voice-ring').classList.add('active');
     document.getElementById('mic-btn').textContent='🎙 LIVE';
     log('log-sys','[MIC] LIVE — Say "Hey Jarvis" + command.');
-
-    // Only greet once per mic session
     if(!micGreetingDone){
       micGreetingDone=true;
-
       const now=new Date();
       const hour=now.getHours();
       const greeting=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
-
       const todayKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
       const todayPay=(paymentTasks[todayKey]||[]).map(t=>t.replace('PAY:','').trim());
       const yr=now.getFullYear(), mo=now.getMonth()+1;
@@ -996,7 +1194,6 @@ function startVoice(){
         const k=`${yr}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         if(paymentTasks[k]) paymentTasks[k].forEach(t=>upcomingPay.push({day:d,text:t.replace('PAY:','').trim()}));
       }
-
       let reminder=`${greeting}, Sir. JARVIS online. `;
       if(todayPay.length>0){
         reminder+=`You have ${todayPay.length} payment${todayPay.length>1?'s':''} due today: ${todayPay.join(', ')}.`;
@@ -1008,11 +1205,9 @@ function startVoice(){
         reminder+='No pending payments for the rest of this month.';
       }
       reminder+=' Awaiting your command.';
-
       log('log-jarvis',`[JARVIS] ${reminder}`);
       setTimeout(()=>speak(reminder),800);
     }
-
   }catch(e){log('log-err','[MIC] Failed. Allow mic permission and click MIC.');}
 }
 
@@ -1059,8 +1254,14 @@ function parseTimerCommand(txt){
     /(?:remind me|alert me)\s+in\s+(\d+)\s*(?:minute|min|minutes)/i,
     /(?:timer|alarm)\s+(?:for\s+)?(\d+)\s*(?:minute|min|minutes)/i,
     /(\d+)\s*(?:minute|min|minutes)\s*(?:timer|alarm|reminder)/i,
+    /(?:set|start|create)?\s*(?:a\s+)?(\d+)\s*(?:second|sec|seconds)\s*(?:timer|alarm|reminder)?/i,
+    /(?:timer|alarm)\s+(?:for\s+)?(\d+)\s*(?:second|sec|seconds)/i,
+    /(\d+)\s*(?:second|sec|seconds)\s*(?:timer|alarm|reminder)/i,
   ];
-  for(const p of patterns){const m=txt.match(p);if(m) return parseInt(m[1]);}
+  for(const p of patterns){
+    const m=txt.match(p);
+    if(m){const isSeconds=/second|sec/i.test(p.toString());return isSeconds?parseInt(m[1])/60:parseInt(m[1]);}
+  }
   return null;
 }
 
@@ -1075,7 +1276,7 @@ function setAlarm(hour,minute,label){
   const id=setTimeout(()=>{
     log('log-jarvis',`[ALARM] ⏰ ${label||'Alarm'}`);
     speak(`Sir, it is ${timeStr}. ${label||'Your alarm is going off.'}`);
-    if(Notification.permission==='granted') new Notification('JARVIS ALARM',{body:`${timeStr}`});
+    if(Notification.permission==='granted') new Notification('JARVIS ALARM',{body:timeStr});
     playBeep();
     activeAlarms=activeAlarms.filter(a=>a.id!==id);
   },ms);
@@ -1124,17 +1325,15 @@ async function openApp(appName){
 // ── WHATSAPP ───────────────────────────────────────────────────────────────
 const CONTACTS={'girlfriend':'60164480805','sister':'60103758415'};
 function parseWhatsAppCommand(txt){
-  const patterns=[
-    /(?:send\s+)?(?:whatsapp|message|msg)\s+(?:to\s+)?(\w+)\s+(?:saying\s+|say\s+|that\s+)?(.+)/i,
-    /(?:text|message)\s+(\w+)\s+(?:saying\s+|say\s+|that\s+)?(.+)/i,
-  ];
-  for(const p of patterns){
-    const m=txt.match(p);
-    if(m){
-      const contact=m[1].toLowerCase();
-      let message=m[2].trim().replace(/^(saying|say|that|telling|tell)\s+/i,'').trim();
-      const phone=CONTACTS[contact];
-      if(phone) return {phone,message,contact};
+  const t=txt.toLowerCase();
+  const intentWords=['message','msg','whatsapp','wa','text','send','tell'];
+  const hasIntent=intentWords.some(w=>t.includes(w));
+  if(!hasIntent) return null;
+  for(const [name,phone] of Object.entries(CONTACTS)){
+    if(t.includes(name)){
+      const idx=t.indexOf(name)+name.length;
+      let message=txt.slice(idx).trim().replace(/^(saying|say|that|telling|tell|to|:)\s*/i,'').trim();
+      if(message) return {phone,message,contact:name};
     }
   }
   return null;
@@ -1163,7 +1362,6 @@ window.onload=async()=>{
       document.removeEventListener('click',autoStart);
       document.removeEventListener('keydown',autoStart);
       startVoice();
-      setTimeout(()=>speak("JARVIS online. Mission control active. Awaiting your command, Sir."),500);
     }
   };
   document.addEventListener('click',autoStart);
