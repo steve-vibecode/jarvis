@@ -108,6 +108,30 @@ def get_portfolio():
 
     except Exception as e:
         return jsonify({"error": str(e)})
+    
+GROQ_KEY = "xxx"
+
+@app.route('/groq-query', methods=['POST'])
+def groq_query():
+    try:
+        payload = request.get_json(force=True)
+        r = requests.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {GROQ_KEY}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': payload.get('model', 'llama-3.3-70b-versatile'),
+                'max_tokens': payload.get('max_tokens', 150),
+                'temperature': payload.get('temperature', 0.3),
+                'messages': payload.get('messages', [])
+            },
+            timeout=15
+        )
+        return jsonify(r.json()), r.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/jarvis-query', methods=['POST'])
 def jarvis_query():
@@ -150,6 +174,7 @@ APP_MAP = {
     'vscode':        r'C:\Users\steveloo95\AppData\Local\Programs\Microsoft VS Code\Code.exe',
     'vs code':       r'C:\Users\steveloo95\AppData\Local\Programs\Microsoft VS Code\Code.exe',
     'my playlist': 'https://www.youtube.com/watch?v=-Q3h0KhWykI&list=PLvw1x9noKvHvJPjz8upXixfK8F80JQIqz',
+    'email':         'https://mail.google.com',
 }
 
 STORE_APPS = {
@@ -157,7 +182,7 @@ STORE_APPS = {
     'microsoft store': 'ms-windows-store:',
     'settings':        'ms-settings:',
     'photos':          'ms-photos:',
-    'email':           'https://mail.google.com',
+
 }
 
 @app.route('/open-app', methods=['POST'])
@@ -191,7 +216,6 @@ def open_app():
     except Exception as e:
         return jsonify({"error": str(e)})
 
-
 # ============================================================
 # GET COMMITMENTS — from Google Sheets (published CSV)
 # ============================================================
@@ -200,7 +224,7 @@ def get_commitment():
     try:
         SHEETS_CSV_URL = f'https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/pub?output=csv&single=true&gid=1165077234'
         df = pd.read_csv(SHEETS_CSV_URL, header=None)
-        df = df.iloc[4:200].reset_index(drop=True)
+        df = df.iloc[3:200].reset_index(drop=True)
 
         commitments    = []
         savings        = []
